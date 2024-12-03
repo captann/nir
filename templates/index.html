@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Анализатор кода</title>
+    <style>
+        :root {
+            --bg-primary: #1a1b1e;
+            --bg-secondary: #2d2e32;
+            --text-primary: #e4e6eb;
+            --text-secondary: #b0b3b8;
+            --accent-color: #4f46e5;
+            --border-color: #3a3b3f;
+            --warning-color: #ef4444;
+            --tag-bg: #374151;
+            --deprecated-bg: #3f2a2a;
+            --hover-color: #3a3b3f;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .section {
+            margin-bottom: 35px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        h1 {
+            color: var(--text-primary);
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        h2 {
+            color: var(--accent-color);
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        h3 {
+            color: var(--text-primary);
+            margin: 0 0 15px 0;
+            font-size: 1.4em;
+        }
+
+        .item {
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            background-color: var(--bg-primary);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+            border-color: var(--accent-color);
+        }
+
+        .tag {
+            display: inline-block;
+            background-color: var(--tag-bg);
+            color: var(--text-primary);
+            padding: 4px 12px;
+            border-radius: 16px;
+            margin: 4px;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            background-color: var(--accent-color);
+            transform: scale(1.05);
+        }
+
+        .warning {
+            color: var(--warning-color);
+            background-color: rgba(239, 68, 68, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        .deprecated {
+            background-color: var(--deprecated-bg);
+        }
+
+        .error-message {
+            color: var(--warning-color);
+            padding: 20px;
+            text-align: center;
+            font-weight: bold;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            font-size: 1.2em;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin: 8px 0;
+        }
+
+        strong {
+            color: var(--text-primary);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Стили для навигационного меню */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+            padding: 0 20px;
+        }
+
+        .tab-button {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-primary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 160px;
+            justify-content: center;
+        }
+
+        .tab-button:hover {
+            background-color: var(--hover-color);
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .tab-button.active {
+            background-color: var(--accent-color);
+            color: var(--text-primary);
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .tab-icon {
+            font-size: 1.2em;
+            margin-right: 8px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .tab-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.85em;
+            margin-left: 8px;
+            min-width: 24px;
+            height: 24px;
+        }
+
+        .tab-button.active .tab-count {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        /* Адаптивность для мобильных устройств */
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .tab-button {
+                width: 100%;
+                min-width: auto;
+            }
+        }
+
+        /* Стили для скроллбара */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color);
+        }
+
+        /* Стили для поисковой строки */
+        .search-container {
+            margin: 20px 0;
+            padding: 0;
+            max-width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 20px;
+            font-size: 1.1em;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        /* Стили для пустого результата поиска */
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Стили для кнопок управления */
+        .item-controls {
+            display: none;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            gap: 8px;
+        }
+
+        .item:hover .item-controls {
+            display: flex;
+        }
+
+        .control-button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+        }
+
+        .edit-button {
+            background-color: var(--accent-color);
+        }
+
+        .edit-button:hover {
+            background-color: #4338ca;
+        }
+
+        .delete-button {
+            background-color: #dc2626;
+        }
+
+        .delete-button:hover {
+            background-color: #b91c1c;
+        }
+
+        /* Стили для модального окна редактирования */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: var(--bg-secondary);
+            margin: 50px auto;
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .modal-buttons {
+            position: sticky;
+            bottom: 0;
+            background-color: var(--bg-secondary);
+            padding: 15px 0;
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .modal-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.2s ease;
+        }
+
+        .save-button {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .save-button:hover {
+            background-color: #4338ca;
+        }
+
+        .cancel-button {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .cancel-button:hover {
+            background-color: var(--hover-color);
+        }
+
+        /* Стили для просмотра деталей */
+        .view-info {
+            padding: 20px;
+            overflow: visible;
+            max-height: none;
+        }
+
+        .view-section {
+            margin-bottom: 24px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .view-row {
+            display: flex;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+
+        .view-label {
+            flex: 0 0 200px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .view-value {
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        .view-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .view-table-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr;
+            gap: 10px;
+            padding: 8px;
+            background-color: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .view-table-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr;
+            gap: 10px;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .view-table-row span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .view-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .view-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .view-list li:last-child {
+            border-bottom: none;
+        }
+
+        .warning-section {
+            background-color: rgba(239, 68, 68, 0.1);
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .view-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .item-content {
+            cursor: pointer;
+            padding: 15px;
+            margin: -15px;
+            transition: background-color 0.2s ease;
+        }
+
+        .item-content:hover {
+            background-color: var(--hover-color);
+        }
+
+        .view-title {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--accent-color);
+            color: var(--text-primary);
+        }
+
+        .modal h3 {
+            color: var(--accent-color);
+            margin: 15px 0;
+            font-size: 1.2em;
+        }
+
+        .file-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.2s ease;
+        }
+
+        .file-link:hover {
+            color: var(--accent-hover-color);
+            text-decoration: underline;
+        }
+
+        .file-link::before {
+            content: '📄';
+            margin-right: 5px;
+            font-size: 1.1em;
+        }
+
+        .code-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow: visible;
+            max-height: none;
+        }
+
+        .code-link-item {
+            padding: 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+
+        .code-link-item:hover {
+            background: var(--hover-color);
+        }
+
+        .code-context {
+            display: block;
+            margin-top: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            padding-left: 24px;
+        }
+
+        /* Стилизация скроллбара */
+        .code-links::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .code-links::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        .code-links::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .code-links::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* Стили для модального окна редактирования */
+        .edit-input {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 1em;
+            transition: border-color 0.2s ease;
+        }
+
+        .edit-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        textarea.edit-input {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .edit-input[disabled] {
+            background-color: var(--bg-primary);
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .structure-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .field-row input {
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            width: 100%;
+        }
+
+        .delete-btn {
+            padding: 4px 8px;
+            background-color: #ff1744;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .add-field-btn {
+            padding: 8px 16px;
+            background-color: #2962ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+            width: fit-content;
+        }
+
+        .params-fields {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .params-fields .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr 30px;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .params-fields .field-row.header {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .params-fields .field-row input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .params-fields .delete-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-field-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .add-field-btn:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Анализатор кода</h1>
+        
+        <div class="tabs">
+            <button class="tab-button active" data-tab="functions">
+                <span class="tab-icon">⚡</span>
+                <span class="tab-text">Функции</span>
+                <span class="tab-count" id="functions-count">0</span>
+            </button>
+            <button class="tab-button" data-tab="constants">
+                <span class="tab-icon">📌</span>
+                <span class="tab-text">Константы</span>
+                <span class="tab-count" id="constants-count">0</span>
+            </button>
+            <button class="tab-button" data-tab="variables">
+                <span class="tab-icon">🔧</span>
+                <span class="tab-text">Переменные</span>
+                <span class="tab-count" id="variables-count">0</span>
+            </button>
+            <button class="tab-button" data-tab="structures">
+                <span class="tab-icon">📦</span>
+                <span class="tab-text">Структуры</span>
+                <span class="tab-count" id="structures-count">0</span>
+            </button>
+        </div>
+
+        <div class="search-container">
+            <input type="text" 
+                   class="search-input" 
+                   id="searchInput" 
+                   placeholder="🔍 Поиск...">
+        </div>
+
+        <div id="error-container" class="error-message" style="display: none;"></div>
+        <div id="loading" class="loading">Загрузка данных...</div>
+        
+        <div class="section" id="functions" style="display: none;">
+            <div id="functions-list"></div>
+        </div>
+
+        <div class="section" id="constants" style="display: none;">
+            <div id="constants-list"></div>
+        </div>
+
+        <div class="section" id="variables" style="display: none;">
+            <div id="variables-list"></div>
+        </div>
+
+        <div class="section" id="structures" style="display: none;">
+            <div id="structures-list"></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для редактирования -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="view-title">Редактирование элемента</h3>
+                <span class="modal-close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="view-info">
+                    <!-- Основная информация -->
+                    <div class="view-section">
+                        <div class="view-row">
+                            <div class="view-label">Название:</div>
+                            <input type="text" id="editName" class="view-value edit-input" disabled />
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Описание:</div>
+                            <textarea id="editDescription" class="view-value edit-input"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Технические детали -->
+                    <div class="view-section">
+                        <h3>Технические детали</h3>
+                        <div class="view-row">
+                            <div class="view-label">Тип:</div>
+                            <input type="text" id="editType" class="view-value edit-input" />
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Область видимости:</div>
+                            <input type="text" id="editScope" class="view-value edit-input" />
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Допустимый диапазон:</div>
+                            <textarea id="editRange" class="view-value edit-input" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Секция для функций -->
+                    <div class="view-section" id="editFunctionsSection">
+                        <h3>Параметры функции</h3>
+                        <div class="view-row">
+                            <div class="view-label">Область видимости:</div>
+                            <input type="text" id="editScope" class="view-value edit-input" />
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Статическая:</div>
+                            <input type="checkbox" id="editStatic" />
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Входные параметры:</div>
+                            <textarea id="editInputParams" class="view-value edit-input"></textarea>
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Выходные параметры:</div>
+                            <textarea id="editOutputParams" class="view-value edit-input"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="modal-buttons">
+                        <button class="modal-button save-button" onclick="saveChanges()">Сохранить</button>
+                        <button class="modal-button cancel-button" onclick="closeEditModal()">Отмена</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Добавляем модальное окно для просмотра деталей -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <div id="viewContent">
+                <h2 class="view-title"></h2>
+                <div class="view-info">
+                    <div class="view-section">
+                        <div class="view-row">
+                            <div class="view-label">Описание:</div>
+                            <div class="view-value">${itemData.description || 'Описание отсутствует'}</div>
+                        </div>
+                    </div>
+
+                    <div class="view-section">
+                        <h3>Технические детали</h3>
+                        <div class="view-row">
+                            <div class="view-label">Тип:</div>
+                            <div class="view-value">${itemData.type || ''}</div>
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Область видимости:</div>
+                            <div class="view-value">${formatScope(itemData.scope)}</div>
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Допустимый диапазон:</div>
+                            <div class="view-value">${JSON.stringify(itemData.valid_range, null, 2)}</div>
+                        </div>
+                    </div>
+
+                    <div class="view-section">
+                        <h3>Поля структуры</h3>
+                        <div class="view-table">
+                            <div class="view-table-header">
+                                <span>Имя</span>
+                                <span>Тип</span>
+                                <span>Описание</span>
+                            </div>
+                            ${(itemData.fields || []).map(field => `
+                                <div class="view-table-row">
+                                    <span>${field.name}</span>
+                                    <span>${field.type}</span>
+                                    <span>${field.description || 'Нет описания'}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="view-section">
+                        <h3>Технические детали</h3>
+                        <div class="view-row">
+                            <div class="view-label">Размер:</div>
+                            <div class="view-value">${itemData.size} байт</div>
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Выравнивание:</div>
+                            <div class="view-value">${itemData.alignment} байт</div>
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Packed:</div>
+                            <div class="view-value">${itemData.packed ? 'Да' : 'Нет'}</div>
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Наследование:</div>
+                            <div class="view-value">${itemData.inheritance || ''}</div>
+                        </div>
+                    </div>
+
+                    <div class="view-section">
+                        <h3>Использований в коде: ${itemData.links_in_code.length}</h3>
+                        <div class="code-links">
+                            ${itemData.links_in_code.map(link => `
+                                <div class="code-link-item">
+                                    <a href="#" class="file-link" 
+                                       onclick="openInEditor('${link.file_path}', ${link.line_number || 1}, this); return false;">
+                                        ${link.file_path}:${link.line_number || 1}
+                                    </a>
+                                    ${link.context ? `<span class="code-context">${link.context}</span>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="view-section">
+                        <h3>Предупреждения</h3>
+                        <p>${itemData.warnings}</p>
+                    </div>
+
+                    <div class="view-section">
+                        <h3>Теги</h3>
+                        <div class="view-tags">
+                            ${createTags(itemData.tags)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentData = {
+            functions: [],
+            constants: [],
+            variables: [],
+            structures: []
+        };
+        
+        // Обработка табов
+        function initTabs() {
+            const tabs = document.querySelectorAll('.tab-button');
+            const searchInput = document.getElementById('searchInput');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Убираем активный класс у всех табов
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Добавляем активный класс текущему табу
+                    tab.classList.add('active');
+                    
+                    const tabName = tab.dataset.tab;
+                    // Обновляем placeholder в поиске
+                    searchInput.placeholder = `🔍 Поиск: ${tab.querySelector('.tab-text').textContent.toLowerCase()}`;
+                    
+                    // Скрываем все секции
+                    document.querySelectorAll('.section').forEach(section => {
+                        section.style.display = 'none';
+                    });
+                    
+                    // Показываем нужную секцию
+                    const targetSection = document.getElementById(tabName);
+                    if (targetSection) {
+                        targetSection.style.display = 'block';
+                    }
+
+                    // Сбрасываем поиск при переключении вкладки
+                    searchInput.value = '';
+                    filterItems(tabName, '');
+                });
+            });
+
+            // Обработчик поиска
+            searchInput.addEventListener('input', (e) => {
+                const activeTab = document.querySelector('.tab-button.active').dataset.tab;
+                filterItems(activeTab, e.target.value.toLowerCase());
+            });
+        }
+
+        function filterItems(type, query) {
+            const container = document.getElementById(`${type}-list`);
+            const items = currentData[type] || [];
+            
+            container.innerHTML = '';
+            
+            const filteredItems = items.filter(item => 
+                item.name.toLowerCase().includes(query) || 
+                (item.description && item.description.toLowerCase().includes(query))
+            );
+
+            if (filteredItems.length === 0) {
+                container.innerHTML = '<div class="no-results">Ничего не найдено</div>';
+                return;
+            }
+
+            switch(type) {
+                case 'functions':
+                    displayFunctions(filteredItems);
+                    break;
+                case 'constants':
+                    displayConstants(filteredItems);
+                    break;
+                case 'variables':
+                    displayVariables(filteredItems);
+                    break;
+                case 'structures':
+                    displayStructures(filteredItems);
+                    break;
+            }
+        }
+
+        async function loadData() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('error-container').style.display = 'none';
+                
+                const response = await fetch('/api/data');
+                const data = await response.json();
+                
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.error) {
+                    document.getElementById('error-container').textContent = data.error;
+                    document.getElementById('error-container').style.display = 'block';
+                    return;
+                }
+                
+                // Сохраняем данные глобально
+                currentData = {
+                    functions: data.functions || [],
+                    constants: data.constants || [],
+                    variables: data.variables || [],
+                    structures: data.structures || []
+                };
+                
+                // Обновляем счетчики
+                document.getElementById('functions-count').textContent = currentData.functions.length;
+                document.getElementById('constants-count').textContent = currentData.constants.length;
+                document.getElementById('variables-count').textContent = currentData.variables.length;
+                document.getElementById('structures-count').textContent = currentData.structures.length;
+                
+                // Отображаем данные
+                displayFunctions(currentData.functions);
+                displayConstants(currentData.constants);
+                displayVariables(currentData.variables);
+                displayStructures(currentData.structures);
+                
+                // Показываем первую секцию по умолчанию
+                document.querySelector('.tab-button[data-tab="functions"]').click();
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error-container').textContent = 'Ошибка загрузки данных: ' + error.message;
+                document.getElementById('error-container').style.display = 'block';
+                console.error('Ошибка загрузки данных:', error);
+            }
+        }
+
+        function createTags(tags) {
+            return (tags || []).map(tag => `<span class="tag">${tag}</span>`).join(' ');
+        }
+
+        function createItemControls() {
+            return `
+                <div class="item-controls">
+                    <button class="control-button edit-button" onclick="editItem(this)">
+                        ✏️ Редактировать
+                    </button>
+                    <button class="control-button delete-button" onclick="deleteItem(this)">
+                        🗑️ Удалить
+                    </button>
+                </div>
+            `;
+        }
+
+        function displayFunctions(functions) {
+            const container = document.getElementById('functions-list');
+            container.innerHTML = '';
+            functions.forEach(func => {
+                const element = document.createElement('div');
+                element.className = `item ${func.deprecated ? 'deprecated' : ''}`;
+                element.dataset.id = func.name;
+                element.dataset.type = 'functions';
+                element.dataset.itemData = JSON.stringify(func);
+                element.innerHTML = `
+                    ${createItemControls()}
+                    <div class="item-content">
+                        <h3>${func.name}</h3>
+                        <p>${func.description || 'Описание отсутствует'}</p>
+                        <p><strong>Файл:</strong> ${func.file_path}</p>
+                        <div>${createTags(func.tags)}</div>
+                    </div>
+                `;
+                element.querySelector('.item-content').addEventListener('click', () => {
+                    viewItem(func, 'functions');
+                });
+                container.appendChild(element);
+            });
+        }
+
+        function displayConstants(constants) {
+            const container = document.getElementById('constants-list');
+            container.innerHTML = '';
+            constants.forEach(constant => {
+                const element = document.createElement('div');
+                element.className = `item ${constant.deprecated ? 'deprecated' : ''}`;
+                element.dataset.id = constant.name;
+                element.dataset.type = 'constants';
+                element.dataset.itemData = JSON.stringify(constant);
+                element.innerHTML = `
+                    ${createItemControls()}
+                    <div class="item-content">
+                        <h3>${constant.name}</h3>
+                        <p>${constant.description || 'Описание отсутствует'}</p>
+                        <div>${createTags(constant.tags)}</div>
+                    </div>
+                `;
+                element.querySelector('.item-content').addEventListener('click', () => {
+                    viewItem(constant, 'constants');
+                });
+                container.appendChild(element);
+            });
+        }
+
+        function displayVariables(variables) {
+            const container = document.getElementById('variables-list');
+            container.innerHTML = '';
+            variables.forEach(variable => {
+                const element = document.createElement('div');
+                element.className = `item ${variable.deprecated ? 'deprecated' : ''}`;
+                element.dataset.id = variable.name;
+                element.dataset.type = 'variables';
+                element.dataset.itemData = JSON.stringify(variable);
+                element.innerHTML = `
+                    ${createItemControls()}
+                    <div class="item-content">
+                        <h3>${variable.name}</h3>
+                        <p>${variable.description || 'Описание отсутствует'}</p>
+                        <div>${createTags(variable.tags)}</div>
+                    </div>
+                `;
+                element.querySelector('.item-content').addEventListener('click', () => {
+                    viewItem(variable, 'variables');
+                });
+                container.appendChild(element);
+            });
+        }
+
+        function displayStructures(structures) {
+            const container = document.getElementById('structures-list');
+            container.innerHTML = '';
+            structures.forEach(structure => {
+                const element = document.createElement('div');
+                element.className = `item ${structure.deprecated ? 'deprecated' : ''}`;
+                element.dataset.id = structure.name;
+                element.dataset.type = 'structures';
+                element.dataset.itemData = JSON.stringify(structure);
+                element.innerHTML = `
+                    ${createItemControls()}
+                    <div class="item-content">
+                        <h3>${structure.name}</h3>
+                        <p>${structure.description || 'Описание отсутствует'}</p>
+                        <div>${createTags(structure.tags)}</div>
+                    </div>
+                `;
+                element.querySelector('.item-content').addEventListener('click', () => {
+                    viewItem(structure, 'structures');
+                });
+                container.appendChild(element);
+            });
+        }
+
+        // Функция для открытия файла в Windsurf
+        function openInEditor(filePath, line, linkElement) {
+            // Берем путь из текста ссылки и удаляем номер строки, если есть
+            const displayedPath = linkElement.textContent.trim();
+            // Если в пути есть номер строки (после последнего :)
+            const lastColonIndex = displayedPath.lastIndexOf(':');
+            const hasLineNumber = !isNaN(displayedPath.slice(lastColonIndex + 1));
+            
+            // Если последнее : отделяет номер строки, берем путь до него
+            const pathWithoutLine = hasLineNumber ? 
+                displayedPath.slice(0, lastColonIndex) : 
+                displayedPath;
+            
+            console.log('Путь из ссылки:', pathWithoutLine);
+            
+            // Создаем URI для Windsurf
+            const windsurfUri = `windsurf://file/${encodeURIComponent(pathWithoutLine)}:${line}`;
+            console.log('Windsurf URI:', windsurfUri);
+            
+            // Открываем ссылку
+            window.location.href = windsurfUri;
+        }
+
+        function viewItem(itemData, type) {
+            const modal = document.getElementById('viewModal');
+            const title = modal.querySelector('.view-title');
+            const content = modal.querySelector('.view-info');
+            
+            title.textContent = itemData.name;
+            
+            let htmlContent = '';
+            
+            // Общая информация для всех типов
+            htmlContent += `
+                <div class="view-section">
+                    <div class="view-row">
+                        <span class="view-label">Описание:</span>
+                        <span class="view-value">${itemData.description || 'Описание отсутствует'}</span>
+                    </div>
+                </div>
+            `;
+
+            // Добавляем информацию об использовании в коде
+            if (itemData.links_in_code && itemData.links_in_code.length > 0) {
+                htmlContent += `
+                    <div class="view-section">
+                        <h3>Использований в коде: ${itemData.links_in_code.length}</h3>
+                        <div class="code-links">
+                            ${itemData.links_in_code.map(link => {
+                                // Извлекаем путь к файлу, убирая весь текст после первого пробела
+                                const filePath = link.file_path.split(/\s+/)[0];
+                                return `
+                                    <div class="code-link-item">
+                                        <a href="#" class="file-link" 
+                                           onclick="openInEditor('${filePath}', ${link.line_number || 1}, this); return false;">
+                                            ${filePath}:${link.line_number || 1}
+                                        </a>
+                                        ${link.context ? `<span class="code-context">${link.context}</span>` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Специфичная информация для каждого типа
+            switch(type) {
+                case 'functions':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Статическая:</span>
+                                <span class="view-value">${itemData.is_static ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Входные параметры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${(itemData.input_params || []).map(param => `
+                                    <div class="view-table-row">
+                                        <span>${param.name || 'Нет имени'}</span>
+                                        <span>${param.type}</span>
+                                        <span>${param.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Выходные параметры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${(itemData.output_params || []).map(param => `
+                                    <div class="view-table-row">
+                                        <span>${param.name || 'Нет имени'}</span>
+                                        <span>${param.type}</span>
+                                        <span>${param.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'constants':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Значение:</span>
+                                <span class="view-value">${itemData.value !== undefined ? itemData.value : ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Тип:</span>
+                                <span class="view-value">${itemData.type || ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">#define:</span>
+                                <span class="view-value">${itemData.is_define ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'variables':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Тип:</span>
+                                <span class="view-value">${itemData.type || ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            ${itemData.valid_range ? `
+                                <div class="view-row">
+                                    <span class="view-label">Допустимый диапазон:</span>
+                                    <span class="view-value">
+                                        ${JSON.stringify(itemData.valid_range, null, 2)}
+                                    </span>
+                                </div>
+                            ` : ''}
+                            <div class="view-row">
+                                <span class="view-label">Статическая:</span>
+                                <span class="view-value">${itemData.is_static ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'structures':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Поля структуры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${itemData.fields.map(field => `
+                                    <div class="view-table-row">
+                                        <span>${field.name}</span>
+                                        <span>${field.type}</span>
+                                        <span>${field.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Размер:</span>
+                                <span class="view-value">${itemData.size} байт</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Выравнивание:</span>
+                                <span class="view-value">${itemData.alignment} байт</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Packed:</span>
+                                <span class="view-value">${itemData.packed ? 'Да' : 'Нет'}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Наследование:</span>
+                                <span class="view-value">${itemData.inheritance || ''}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            // Добавляем предупреждения, если есть
+            if (itemData.warnings) {
+                htmlContent += `
+                    <div class="view-section warning-section">
+                        <h3>Предупреждения</h3>
+                        <p>${itemData.warnings}</p>
+                    </div>
+                `;
+            }
+
+            // Добавляем теги, если есть
+            if (itemData.tags && itemData.tags.length > 0) {
+                htmlContent += `
+                    <div class="view-section">
+                        <h3>Теги</h3>
+                        <div class="view-tags">
+                            ${createTags(itemData.tags)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = htmlContent;
+            modal.style.display = 'block';
+        }
+
+        function formatValue(value, type) {
+            if (value === undefined || value === null || value === '') return '';
+            if (typeof value === 'boolean') {
+                return value ? 'Да' : 'Нет';
+            }
+            if (type === 'define') {
+                return value ? 'Да' : 'Нет';
+            }
+            return value;
+        }
+
+        function formatScope(scope) {
+            return scope === 'global' ? 'Глобальная' : 'Локальная';
+        }
+
+        function openInEditor(filePath, line, linkElement) {
+            // Берем путь из текста ссылки и удаляем номер строки, если есть
+            const displayedPath = linkElement.textContent.trim();
+            // Если в пути есть номер строки (после последнего :)
+            const lastColonIndex = displayedPath.lastIndexOf(':');
+            const hasLineNumber = !isNaN(displayedPath.slice(lastColonIndex + 1));
+            
+            // Если последнее : отделяет номер строки, берем путь до него
+            const pathWithoutLine = hasLineNumber ? 
+                displayedPath.slice(0, lastColonIndex) : 
+                displayedPath;
+            
+            console.log('Путь из ссылки:', pathWithoutLine);
+            
+            // Создаем URI для Windsurf
+            const windsurfUri = `windsurf://file/${encodeURIComponent(pathWithoutLine)}:${line}`;
+            console.log('Windsurf URI:', windsurfUri);
+            
+            // Открываем ссылку
+            window.location.href = windsurfUri;
+        }
+
+        function viewItem(itemData, type) {
+            const modal = document.getElementById('viewModal');
+            const title = modal.querySelector('.view-title');
+            const content = modal.querySelector('.view-info');
+            
+            title.textContent = itemData.name;
+            
+            let htmlContent = '';
+            
+            // Общая информация для всех типов
+            htmlContent += `
+                <div class="view-section">
+                    <div class="view-row">
+                        <span class="view-label">Описание:</span>
+                        <span class="view-value">${itemData.description || 'Описание отсутствует'}</span>
+                    </div>
+                </div>
+            `;
+
+            // Добавляем информацию об использовании в коде
+            if (itemData.links_in_code && itemData.links_in_code.length > 0) {
+                htmlContent += `
+                    <div class="view-section">
+                        <h3>Использований в коде: ${itemData.links_in_code.length}</h3>
+                        <div class="code-links">
+                            ${itemData.links_in_code.map(link => {
+                                // Извлекаем путь к файлу, убирая весь текст после первого пробела
+                                const filePath = link.file_path.split(/\s+/)[0];
+                                return `
+                                    <div class="code-link-item">
+                                        <a href="#" class="file-link" 
+                                           onclick="openInEditor('${filePath}', ${link.line_number || 1}, this); return false;">
+                                            ${filePath}:${link.line_number || 1}
+                                        </a>
+                                        ${link.context ? `<span class="code-context">${link.context}</span>` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Специфичная информация для каждого типа
+            switch(type) {
+                case 'functions':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Статическая:</span>
+                                <span class="view-value">${itemData.is_static ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Входные параметры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${(itemData.input_params || []).map(param => `
+                                    <div class="view-table-row">
+                                        <span>${param.name || 'Нет имени'}</span>
+                                        <span>${param.type}</span>
+                                        <span>${param.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Выходные параметры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${(itemData.output_params || []).map(param => `
+                                    <div class="view-table-row">
+                                        <span>${param.name || 'Нет имени'}</span>
+                                        <span>${param.type}</span>
+                                        <span>${param.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'constants':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Значение:</span>
+                                <span class="view-value">${itemData.value !== undefined ? itemData.value : ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Тип:</span>
+                                <span class="view-value">${itemData.type || ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">#define:</span>
+                                <span class="view-value">${itemData.is_define ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'variables':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Тип:</span>
+                                <span class="view-value">${itemData.type || ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            ${itemData.valid_range ? `
+                                <div class="view-row">
+                                    <span class="view-label">Допустимый диапазон:</span>
+                                    <span class="view-value">
+                                        ${JSON.stringify(itemData.valid_range, null, 2)}
+                                    </span>
+                                </div>
+                            ` : ''}
+                            <div class="view-row">
+                                <span class="view-label">Статическая:</span>
+                                <span class="view-value">${itemData.is_static ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'structures':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Поля структуры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${itemData.fields.map(field => `
+                                    <div class="view-table-row">
+                                        <span>${field.name}</span>
+                                        <span>${field.type}</span>
+                                        <span>${field.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Размер:</span>
+                                <span class="view-value">${itemData.size} байт</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Выравнивание:</span>
+                                <span class="view-value">${itemData.alignment} байт</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Packed:</span>
+                                <span class="view-value">${itemData.packed ? 'Да' : 'Нет'}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Наследование:</span>
+                                <span class="view-value">${itemData.inheritance || ''}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            // Добавляем предупреждения, если есть
+            if (itemData.warnings) {
+                htmlContent += `
+                    <div class="view-section warning-section">
+                        <h3>Предупреждения</h3>
+                        <p>${itemData.warnings}</p>
+                    </div>
+                `;
+            }
+
+            // Добавляем теги, если есть
+            if (itemData.tags && itemData.tags.length > 0) {
+                htmlContent += `
+                    <div class="view-section">
+                        <h3>Теги</h3>
+                        <div class="view-tags">
+                            ${createTags(itemData.tags)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = htmlContent;
+            modal.style.display = 'block';
+        }
+
+        function formatValue(value, type) {
+            if (value === undefined || value === null || value === '') return '';
+            if (typeof value === 'boolean') {
+                return value ? 'Да' : 'Нет';
+            }
+            if (type === 'define') {
+                return value ? 'Да' : 'Нет';
+            }
+            return value;
+        }
+
+        function formatScope(scope) {
+            return scope === 'global' ? 'Глобальная' : 'Локальная';
+        }
+
+        function openEditModal(itemData, type) {
+            console.log('Opening modal with:', type, itemData);
+            const modal = document.getElementById('editModal');
+            const content = modal.querySelector('.view-info');
+            const title = modal.querySelector('.view-title');
+            
+            title.textContent = itemData.name;
+            
+            // Базовые поля для всех типов
+            let htmlContent = `
+                <div class="view-section">
+                    <div class="view-row">
+                        <span class="view-label">Название:</span>
+                        <input type="text" id="editName" class="view-value edit-input" value="${itemData.name}" disabled>
+                    </div>
+                    <div class="view-row">
+                        <span class="view-label">Описание:</span>
+                        <textarea id="editDescription" class="view-value edit-input">${itemData.description || ''}</textarea>
+                    </div>
+                </div>
+            `;
+
+            // Специфичные поля в зависимости от типа
+            if (type === 'structures') {
+                htmlContent += `
+                    <div class="view-section">
+                        <h3>Поля структуры</h3>
+                        <div class="structure-fields" id="structureFields">
+                            <div class="field-row header">
+                                <span>Имя</span>
+                                <span>Тип</span>
+                                <span>Описание</span>
+                                <span></span>
+                            </div>
+                            ${(itemData.fields || []).map(field => `
+                                <div class="field-row">
+                                    <input type="text" value="${field.name || ''}" placeholder="Имя">
+                                    <input type="text" value="${field.type || ''}" placeholder="Тип">
+                                    <input type="text" value="${field.description || ''}" placeholder="Описание">
+                                    <button class="delete-btn" onclick="this.parentElement.remove()">×</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="add-field-btn" onclick="addFieldRow()">+ Добавить поле</button>
+                    </div>
+                `;
+            } else if (type === 'functions') {
+                htmlContent += `
+                    <div class="view-section">
+                        <h3>Технические детали</h3>
+                        <div class="view-row">
+                            <span class="view-label">Область видимости:</span>
+                            <select id="editScope" class="view-value edit-input">
+                                <option value="global" ${itemData.scope === 'global' ? 'selected' : ''}>Глобальная</option>
+                                <option value="local" ${itemData.scope === 'local' ? 'selected' : ''}>Локальная</option>
+                            </select>
+                        </div>
+                        <div class="view-row">
+                            <span class="view-label">Статическая:</span>
+                            <select id="editStatic" class="view-value edit-input">
+                                <option value="true" ${itemData.is_static ? 'selected' : ''}>Да</option>
+                                <option value="false" ${!itemData.is_static ? 'selected' : ''}>Нет</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="view-section">
+                        <h3>Входные параметры</h3>
+                        <div class="params-fields" id="inputParamsFields">
+                            <div class="field-row header">
+                                <span>Имя</span>
+                                <span>Тип</span>
+                                <span>Описание</span>
+                                <span></span>
+                            </div>
+                            ${(itemData.input_params || []).map(param => `
+                                <div class="field-row">
+                                    <input type="text" value="${param.name || ''}" placeholder="Имя">
+                                    <input type="text" value="${param.type || ''}" placeholder="Тип">
+                                    <input type="text" value="${param.description || ''}" placeholder="Описание">
+                                    <button class="delete-btn" onclick="this.parentElement.remove()">×</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="add-field-btn" onclick="addParamRow('inputParamsFields')">+ Добавить параметр</button>
+                    </div>
+                    <div class="view-section">
+                        <h3>Выходные параметры</h3>
+                        <div class="params-fields" id="outputParamsFields">
+                            <div class="field-row header">
+                                <span>Имя</span>
+                                <span>Тип</span>
+                                <span>Описание</span>
+                                <span></span>
+                            </div>
+                            ${(itemData.output_params || []).map(param => `
+                                <div class="field-row">
+                                    <input type="text" value="${param.name || ''}" placeholder="Имя">
+                                    <input type="text" value="${param.type || ''}" placeholder="Тип">
+                                    <input type="text" value="${param.description || ''}" placeholder="Описание">
+                                    <button class="delete-btn" onclick="this.parentElement.remove()">×</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="add-field-btn" onclick="addParamRow('outputParamsFields')">+ Добавить параметр</button>
+                    </div>
+                `;
+            } else if (type === 'constants' || type === 'variables') {
+                htmlContent += `
+                    <div class="view-section">
+                        <h3>Технические детали</h3>
+                        <div class="view-row">
+                            <span class="view-label">Тип:</span>
+                            <input type="text" id="editType" class="view-value edit-input" value="${itemData.type || ''}">
+                        </div>
+                        ${type === 'constants' ? `
+                        <div class="view-row">
+                            <span class="view-label">#define:</span>
+                            <select id="editDefine" class="view-value edit-input">
+                                <option value="true" ${itemData.is_define ? 'selected' : ''}>Да</option>
+                                <option value="false" ${!itemData.is_define ? 'selected' : ''}>Нет</option>
+                            </select>
+                        </div>
+                        <div class="view-row">
+                            <span class="view-label">Значение:</span>
+                            <input type="text" id="editValue" class="view-value edit-input" value="${formatValue(itemData.value)}">
+                        </div>
+                        ` : ''}
+                        <div class="view-row">
+                            <span class="view-label">Область видимости:</span>
+                            <select id="editScope" class="view-value edit-input">
+                                <option value="global" ${itemData.scope === 'global' ? 'selected' : ''}>Глобальная</option>
+                                <option value="local" ${itemData.scope === 'local' ? 'selected' : ''}>Локальная</option>
+                            </select>
+                        </div>
+                        ${type === 'variables' ? `
+                            <div class="view-row">
+                                <span class="view-label">Статическая:</span>
+                                <select id="editStatic" class="view-value edit-input">
+                                    <option value="true" ${itemData.is_static ? 'selected' : ''}>Да</option>
+                                    <option value="false" ${!itemData.is_static ? 'selected' : ''}>Нет</option>
+                                </select>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            htmlContent += `
+                <div class="modal-buttons">
+                    <button class="modal-button save-button" onclick="saveChanges('${type}')">Сохранить</button>
+                    <button class="modal-button cancel-button" onclick="closeEditModal()">Отмена</button>
+                </div>
+            `;
+
+            content.innerHTML = htmlContent;
+            modal.style.display = 'block';
+        }
+
+        function saveChanges(type) {
+            const baseData = {
+                name: document.getElementById('editName').value,
+                description: document.getElementById('editDescription').value,
+            };
+
+            let specificData = {};
+            
+            if (type === 'structures') {
+                specificData.fields = Array.from(document.querySelectorAll('.field-row:not(.header)')).map(row => {
+                    const [name, type, description] = row.querySelectorAll('input');
+                    return {
+                        name: name.value,
+                        type: type.value,
+                        description: description.value
+                    };
+                });
+            } else if (type === 'functions') {
+                specificData = {
+                    scope: document.getElementById('editScope').value,
+                    is_static: document.getElementById('editStatic').value === 'true',
+                    input_params: Array.from(document.querySelectorAll('#inputParamsFields .field-row:not(.header)')).map(row => {
+                        const [name, type, description] = row.querySelectorAll('input');
+                        return {
+                            name: name.value,
+                            type: type.value,
+                            description: description.value
+                        };
+                    }),
+                    output_params: Array.from(document.querySelectorAll('#outputParamsFields .field-row:not(.header)')).map(row => {
+                        const [name, type, description] = row.querySelectorAll('input');
+                        return {
+                            name: name.value,
+                            type: type.value,
+                            description: description.value
+                        };
+                    })
+                };
+            } else if (type === 'constants' || type === 'variables') {
+                specificData = {
+                    type: document.getElementById('editType').value,
+                    scope: document.getElementById('editScope').value
+                };
+                
+                if (type === 'constants') {
+                    specificData.value = document.getElementById('editValue').value;
+                    specificData.is_define = document.getElementById('editDefine').value === 'true';
+                }
+                
+                if (type === 'variables') {
+                    specificData.is_static = document.getElementById('editStatic').value === 'true';
+                }
+            }
+
+            const data = { ...baseData, ...specificData };
+            console.log('Saving data:', type, data);
+            closeEditModal();
+        }
+
+        function addFieldRow() {
+            const fieldsContainer = document.getElementById('structureFields');
+            const row = document.createElement('div');
+            row.className = 'field-row';
+            row.innerHTML = `
+                <input type="text" placeholder="Имя">
+                <input type="text" placeholder="Тип">
+                <input type="text" placeholder="Описание">
+                <button class="delete-btn" onclick="this.parentElement.remove()">×</button>
+            `;
+            fieldsContainer.appendChild(row);
+        }
+
+        function addParamRow(containerId) {
+            const container = document.getElementById(containerId);
+            const newRow = document.createElement('div');
+            newRow.className = 'field-row';
+            newRow.innerHTML = `
+                <input type="text" placeholder="Имя">
+                <input type="text" placeholder="Тип">
+                <input type="text" placeholder="Описание">
+                <button class="delete-btn" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function editItem(button) {
+            const item = button.closest('.item');
+            const itemId = item.dataset.id;
+            const itemType = item.dataset.type;
+            const itemData = JSON.parse(item.dataset.itemData);
+
+            openEditModal(itemData, itemType);
+        }
+
+        function deleteItem(button) {
+            if (confirm('Вы уверены, что хотите удалить этот элемент?')) {
+                const item = button.closest('.item');
+                const itemId = item.dataset.id;
+                const itemType = item.dataset.type;
+
+                // Удаляем элемент из данных
+                currentData[itemType] = currentData[itemType].filter(i => i.name !== itemId);
+                // Обновляем отображение
+                filterItems(itemType, document.getElementById('searchInput').value.toLowerCase());
+                // Обновляем счетчик
+                document.getElementById(`${itemType}-count`).textContent = currentData[itemType].length;
+            }
+        }
+
+        window.addEventListener('load', () => {
+            initTabs();
+            loadData();
+        });
+
+        // Закрытие модальных окон по клику на крестик или вне окна
+        document.querySelectorAll('.modal-close').forEach(closeBtn => {
+            closeBtn.onclick = function() {
+                this.closest('.modal').style.display = 'none';
+            }
+        });
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Функции для работы с модальным окном
+        const modal = document.getElementById('editModal');
+        const closeBtn = document.querySelector('.modal-close');
+        const cancelBtn = document.querySelector('.cancel-button');
+        const editForm = document.getElementById('editForm');
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        closeBtn.onclick = closeModal;
+        cancelBtn.onclick = closeModal;
+
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        function closeModal() {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html>
