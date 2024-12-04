@@ -3,6 +3,7 @@ class Func:
     
     Attributes:
         # Поля, видимые в списке:
+        id (str): Уникальный идентификатор
         name (str): Имя функции
         description (str): Описание назначения функции
         scope (str): Область видимости (public/private/static)
@@ -21,11 +22,12 @@ class Func:
         tags (list): Теги для группировки и поиска
         documentation_link (str): Ссылка на документацию
     """
-    def __init__(self, name="", description="",
+    def __init__(self, id="", name="", description="",
                  input_params=[{"name": "type"}], output_params=[{"name": "type"}], 
                  links_in_code=[], file_path="", is_static=False, scope="",
                  dependencies=[], called_by=[], comments="", warnings="",
                  deprecated=False, tags=[], documentation_link=""):
+        self.id = id
         self.name = name
         self.description = description
         self.input_params = input_params
@@ -48,6 +50,7 @@ class Consts:
     
     Attributes:
         # Поля, видимые в списке:
+        id (str): Уникальный идентификатор
         name (str): Имя константы
         description (str): Описание назначения константы
         type (str): Тип данных константы
@@ -65,10 +68,11 @@ class Consts:
         tags (list): Теги для группировки и поиска
         documentation_link (str): Ссылка на документацию
     """
-    def __init__(self, name="", description="", type="", value=0,
+    def __init__(self, id="", name="", description="", type="", value=0,
                  links_in_code=[], file_path="", is_define=True, scope="",
                  dependencies=[], comments="", warnings="",
                  deprecated=False, tags=[], documentation_link=""):
+        self.id = id
         self.name = name
         self.description = description
         self.type = type
@@ -90,6 +94,7 @@ class Peremennaya:
     
     Attributes:
         # Поля, видимые в списке:
+        id (str): Уникальный идентификатор
         name (str): Имя переменной
         description (str): Описание назначения переменной
         type (str): Тип данных переменной
@@ -106,10 +111,11 @@ class Peremennaya:
         tags (list): Теги для группировки и поиска
         documentation_link (str): Ссылка на документацию
     """
-    def __init__(self, name="", description="", type="",
+    def __init__(self, id="", name="", description="", type="",
                  links_in_code=[], file_path="", scope="", is_static=False,
                  valid_range={}, comments="", warnings="",
                  deprecated=False, tags=[], documentation_link=""):
+        self.id = id
         self.name = name
         self.description = description
         self.type = type
@@ -130,6 +136,7 @@ class Structure:
     
     Attributes:
         # Поля, видимые в списке:
+        id (str): Уникальный идентификатор
         name (str): Имя структуры
         description (str): Описание назначения структуры
         size (int): Размер структуры в байтах
@@ -148,12 +155,13 @@ class Structure:
         tags (list): Теги для группировки и поиска
         documentation_link (str): Ссылка на документацию
     """
-    def __init__(self, name="", description="", 
+    def __init__(self, id="", name="", description="", 
                  fields=[{"name": ["type", "description"]}],
                  links_in_code=[], file_path="", size=0, alignment=0,
                  used_in_functions=[], inheritance="", packed=False,
                  comments="", warnings="", deprecated=False,
                  tags=[], documentation_link=""):
+        self.id = id
         self.name = name
         self.description = description
         self.fields = fields

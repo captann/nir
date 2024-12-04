@@ -4,12 +4,62 @@ import os
 import subprocess
 import re
 from datetime import datetime
+from pathlib import Path
+import argparse
 
 app = Flask(__name__)
+BACKUP_DIR = 'backups'
+VERSIONS_DIR = 'versions'
+VERSION = None  # Глобальная переменная для хранения запрошенной версии
+
+def get_latest_version_file():
+    """Получает путь к файлу с последней версией данных"""
+    versions_dir = Path(VERSIONS_DIR)
+    if not versions_dir.exists():
+        raise FileNotFoundError("Папка versions не найдена")
+        
+    # Получаем список всех файлов версий
+    version_files = list(versions_dir.glob('code_data_*.json'))
+    if not version_files:
+        raise FileNotFoundError("Файлы версий не найдены")
+    
+    # Извлекаем номера версий и находим максимальный
+    latest_file = max(
+        version_files,
+        key=lambda f: int(f.stem.split('_')[-1])
+    )
+    
+    return str(latest_file)
+
+def get_version_file(version=None):
+    """Получает путь к файлу конкретной версии или последней версии"""
+    versions_dir = Path(VERSIONS_DIR)
+    if not versions_dir.exists():
+        raise FileNotFoundError("Папка versions не найдена")
+        
+    # Если указана конкретная версия
+    if version is not None:
+        specific_file = versions_dir / f'code_data_{version}.json'
+        if specific_file.exists():
+            return str(specific_file)
+        else:
+            print(f"Версия {version} не найдена, будет использована последняя версия")
+    
+    # Получаем список всех файлов версий
+    version_files = list(versions_dir.glob('code_data_*.json'))
+    if not version_files:
+        raise FileNotFoundError("Файлы версий не найдены")
+    
+    # Извлекаем номера версий и находим максимальный
+    latest_file = max(
+        version_files,
+        key=lambda f: int(f.stem.split('_')[-1])
+    )
+    
+    return str(latest_file)
 
 # Путь к JSON файлу
-JSON_FILE = 'code_data.json'
-BACKUP_DIR = 'backups'
+
 
 def create_backup():
     """Create a backup of the current JSON file"""
@@ -20,8 +70,8 @@ def create_backup():
     backup_file = os.path.join(BACKUP_DIR, f'code_data_{timestamp}.json')
     
     try:
-        if os.path.exists(JSON_FILE):
-            with open(JSON_FILE, 'r', encoding='utf-8') as src:
+        if os.path.exists(get_json_file()):
+            with open(get_json_file(), 'r', encoding='utf-8') as src:
                 with open(backup_file, 'w', encoding='utf-8') as dst:
                     dst.write(src.read())
         return True
@@ -29,22 +79,23 @@ def create_backup():
         print(f"Ошибка при создании резервной копии: {str(e)}")
         return False
 
-def load_json_data():
-    """Load data from JSON file with error handling"""
+
+# Путь к файлу данных теперь будет динамическим
+def get_json_file():
     try:
-        with open(JSON_FILE, 'r', encoding='utf-8') as f:
+        return get_version_file(VERSION)
+    except FileNotFoundError as e:
+        print(f"Ошибка: {e}")
+        return 'code_data.json'  # Fallback к старому варианту
+
+def load_json_data():
+    """Загрузка данных из JSON файла"""
+    try:
+        json_file = get_json_file()
+        with open(json_file, 'r', encoding='utf-8') as f:
             return json.load(f)
-    except FileNotFoundError:
-        return {
-            'functions': [],
-            'constants': [],
-            'variables': [],
-            'structures': []
-        }
-    except json.JSONDecodeError:
-        if os.path.exists(JSON_FILE):
-            # Create backup of corrupted file
-            create_backup()
+    except Exception as e:
+        print(f"Ошибка при загрузке данных: {e}")
         return {
             'functions': [],
             'constants': [],
@@ -53,19 +104,27 @@ def load_json_data():
         }
 
 def save_json_data(data):
-    """Save data to JSON file with backup"""
+    """Сохранение данных в JSON файл"""
     try:
-        create_backup()  # Create backup before saving
-        with open(JSON_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+
+        with open(get_json_file(), 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+            
+        print(f'Данные сохранены в {get_json_file()}')
         return True
     except Exception as e:
-        print(f"Ошибка при сохранении данных: {str(e)}")
+        print(f"Ошибка при сохранении данных: {e}")
         return False
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    try:
+        data = load_json_data()
+        version_text = f"Версия {VERSION}" if VERSION is not None else "Последняя версия"
+        current_file = os.path.abspath(get_json_file())  # Получаем абсолютный путь
+        return render_template('index.html', data=data, version_info=version_text, current_file=current_file)
+    except Exception as e:
+        return f"Ошибка при загрузке данных: {str(e)}"
 
 @app.route('/api/data')
 def get_data():
@@ -86,11 +145,51 @@ def update_item():
 
         # Загружаем текущие данные
         current_data = load_json_data()
+        item_type = data.get('type')
+        if not item_type:
+            return jsonify({
+                'success': False,
+                'error': 'Не указан тип объекта'
+            })
+
+        prefix_map = {
+            'functions': 'func',
+            'variables': 'var',
+            'constants': 'const',
+            'structures': 'struct'
+        }
+        prefix = prefix_map.get(item_type, 'item')
+        
+        # Убедимся, что категория существует в словаре
+        if item_type not in current_data:
+            current_data[item_type] = []
+
+        if item_id == 'new':
+            # Находим максимальный номер для данного типа
+            max_num = 0
+            pattern = f"{prefix}_"
+            for item in current_data[item_type]:
+                curr_id = item.get('id', '')
+                if curr_id.startswith(pattern):
+                    try:
+                        num = int(curr_id.split('_')[1])
+                        max_num = max(max_num, num)
+                    except (IndexError, ValueError):
+                        continue
+            
+            # Генерируем новый id
+            new_id = f"{prefix}_{str(max_num + 1).zfill(3)}"
+            
+            # Устанавливаем новый id в данные
+            data['id'] = new_id
+            item_id = new_id
+            # Добавляем новый элемент в соответствующую категорию
+            current_data[item_type].append(data)
+
         
         # Находим и обновляем объект в соответствующей категории
         item_updated = False
         categories = ['functions', 'constants', 'variables', 'structures']
-        
         for category in categories:
             items = current_data.get(category, [])
             for i, item in enumerate(items):
@@ -178,6 +277,56 @@ def validate_data():
             'error': str(e)
         })
 
+@app.route('/api/delete', methods=['POST'])
+def delete_item():
+    try:
+        data = request.get_json()
+        item_id = data.get('id')
+        
+        if not item_id:
+            return jsonify({
+                'success': False,
+                'error': 'ID не указан'
+            }), 400
+            
+        # Загружаем текущие данные
+        current_data = load_json_data()
+        
+        # Ищем объект в каждой категории
+        item_found = False
+        for category in current_data:
+            for item in current_data[category]:
+                if item.get('id') == item_id:
+                    item['is_deleted'] = True
+                    item_found = True
+                    break
+            if item_found:
+                break
+        
+        if not item_found:
+            return jsonify({
+                'success': False,
+                'error': f'Элемент с id {item_id} не найден'
+            }), 404
+            
+        # Создаем бэкап перед сохранением
+        create_backup()
+        
+        # Сохраняем обновленные данные
+        with open(get_json_file(), 'w', encoding='utf-8') as f:
+            json.dump(current_data, f, ensure_ascii=False, indent=4)
+            
+        return jsonify({
+            'success': True,
+            'message': 'Объект помечен как удаленный'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/open_file')
 def open_file():
     try:
@@ -250,4 +399,20 @@ def open_file():
         })
 
 if __name__ == '__main__':
+    # Настраиваем парсер аргументов командной строки
+    parser = argparse.ArgumentParser(description='Запуск веб-сервера для анализа кода')
+    parser.add_argument('-v', '--version', type=int, help='Номер версии для загрузки')
+    args = parser.parse_args()
+    
+    # Устанавливаем глобальную версию
+    VERSION = args.version
+    
+    if VERSION is not None:
+        try:
+            json_file = get_version_file(VERSION)
+            print(f"Используется файл версии {VERSION}: {json_file}")
+        except FileNotFoundError:
+            print(f"Версия {VERSION} не найдена, будет использована последняя версия")
+            VERSION = None
+    
     app.run(debug=True, port=5000)

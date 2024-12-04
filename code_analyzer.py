@@ -13,6 +13,7 @@ class CodeLocation:
 
 @dataclass
 class BaseItem:
+    id: str
     name: str
     description: str
     file_path: str
@@ -22,6 +23,7 @@ class BaseItem:
     deprecated: bool
     tags: List[str]
     documentation_link: str
+    is_deleted: bool  # Добавляем свойство is_deleted
 
 @dataclass
 class Function(BaseItem):
@@ -63,6 +65,12 @@ class CodeAnalyzer:
         self.constants: List[Constant] = []
         self.variables: List[Variable] = []
         self.structures: List[Structure] = []
+        
+        # Счетчики для генерации ID
+        self._function_counter = 1
+        self._constant_counter = 1
+        self._variable_counter = 1
+        self._structure_counter = 1
         
         # Множества для хранения уникальных идентификаторов
         self._function_ids = set()
@@ -120,6 +128,30 @@ class CodeAnalyzer:
         self._structure_ids.add(struct_id)
         return True
     
+    def _generate_function_id(self) -> str:
+        """Генерация ID для функции"""
+        id = f"func_{self._function_counter:03d}"
+        self._function_counter += 1
+        return id
+
+    def _generate_constant_id(self) -> str:
+        """Генерация ID для константы"""
+        id = f"const_{self._constant_counter:03d}"
+        self._constant_counter += 1
+        return id
+
+    def _generate_variable_id(self) -> str:
+        """Генерация ID для переменной"""
+        id = f"var_{self._variable_counter:03d}"
+        self._variable_counter += 1
+        return id
+
+    def _generate_structure_id(self) -> str:
+        """Генерация ID для структуры"""
+        id = f"struct_{self._structure_counter:03d}"
+        self._structure_counter += 1
+        return id
+
     def analyze_file(self, file_path: Path) -> None:
         """Анализ одного файла"""
         if not file_path.suffix in ['.c', '.h']:
@@ -183,6 +215,7 @@ class CodeAnalyzer:
         comments = self._extract_comments(lines, line_num)
         
         return Function(
+            id=self._generate_function_id(),
             name=name,
             description=comments,
             file_path=str(file_path),
@@ -197,7 +230,8 @@ class CodeAnalyzer:
             is_static=static,
             scope='static' if static else 'global',
             dependencies=[],
-            called_by=[]
+            called_by=[],
+            is_deleted=False  # Добавляем свойство is_deleted
         )
     
     def _parse_define(self, match: re.Match, file_path: Path, lines: List[str], content: str) -> Constant:
@@ -209,6 +243,7 @@ class CodeAnalyzer:
         comments = self._extract_comments(lines, line_num)
         
         return Constant(
+            id=self._generate_constant_id(),
             name=name,
             description=comments,
             file_path=str(file_path),
@@ -222,7 +257,8 @@ class CodeAnalyzer:
             value=value,
             is_define=True,
             scope='global',
-            dependencies=[]
+            dependencies=[],
+            is_deleted=False  # Добавляем свойство is_deleted
         )
     
     def _parse_constant(self, match: re.Match, file_path: Path, lines: List[str], content: str) -> Constant:
@@ -235,6 +271,7 @@ class CodeAnalyzer:
         comments = self._extract_comments(lines, line_num)
         
         return Constant(
+            id=self._generate_constant_id(),
             name=name,
             description=comments,
             file_path=str(file_path),
@@ -248,7 +285,8 @@ class CodeAnalyzer:
             value=value,
             is_define=False,
             scope='global',
-            dependencies=[]
+            dependencies=[],
+            is_deleted=False  # Добавляем свойство is_deleted
         )
     
     def _parse_variable(self, match: re.Match, file_path: Path, lines: List[str], content: str) -> Variable:
@@ -261,6 +299,7 @@ class CodeAnalyzer:
         comments = self._extract_comments(lines, line_num)
         
         return Variable(
+            id=self._generate_variable_id(),
             name=name,
             description=comments,
             file_path=str(file_path),
@@ -273,7 +312,8 @@ class CodeAnalyzer:
             type=type_name.strip(),
             scope='static' if static else 'global',
             is_static=static,
-            valid_range={}
+            valid_range={},
+            is_deleted=False  # Добавляем свойство is_deleted
         )
     
     def _parse_struct(self, match: re.Match, file_path: Path, lines: List[str], content: str) -> Structure:
@@ -313,6 +353,7 @@ class CodeAnalyzer:
         comments = self._extract_comments(lines, line_num)
         
         return Structure(
+            id=self._generate_structure_id(),
             name=name,
             description=comments,
             file_path=str(file_path),
@@ -327,7 +368,8 @@ class CodeAnalyzer:
             alignment=0,
             used_in_functions=[],
             inheritance="",
-            packed=False
+            packed=False,
+            is_deleted=False  # Добавляем свойство is_deleted
         )
     
     def _find_references(self, name: str) -> List[CodeLocation]:
@@ -369,23 +411,63 @@ class CodeAnalyzer:
         for file_path in self.root_dir.rglob('*.[ch]'):
             self.analyze_file(file_path)
     
-    def generate_json(self) -> str:
+    def _get_next_version_number(self) -> int:
+        # Создаем папку versions, если она не существует
+        versions_dir = Path('versions')
+        versions_dir.mkdir(exist_ok=True)
+        
+        # Получаем список всех файлов в папке versions
+        version_files = list(versions_dir.glob('code_data_*.json'))
+        
+        if not version_files:
+            return 1
+            
+        # Извлекаем номера версий из имен файлов
+        version_numbers = []
+        for file in version_files:
+            try:
+                # Извлекаем номер версии из имени файла
+                version = int(file.stem.split('_')[-1])
+                version_numbers.append(version)
+            except (ValueError, IndexError):
+                continue
+                
+        # Возвращаем следующий номер версии
+        return max(version_numbers, default=0) + 1
+
+    def generate_json(self):
         """Генерация JSON с результатами анализа"""
+        # Получаем следующий номер версии
+        next_version = self._get_next_version_number()
+        
+        # Формируем имя файла
+        versions_dir = Path('versions')
+        json_file = versions_dir / f'code_data_{next_version}.json'
+        
+        # Создаем словарь с данными
         data = {
             'functions': [asdict(f) for f in self.functions],
             'constants': [asdict(c) for c in self.constants],
             'variables': [asdict(v) for v in self.variables],
             'structures': [asdict(s) for s in self.structures]
         }
-        return json.dumps(data, indent=2, ensure_ascii=False)
+        
+        # Сохраняем в файл версии
+        with open(json_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+            
+        # Копируем последнюю версию в основной файл
+        
+        
+        print(f'Данные сохранены в {json_file}')
+        return data
 
 def main():
     analyzer = CodeAnalyzer('d:/keil/prog/src')
     analyzer.analyze_directory()
     
     # Сохранение результатов в файл
-    with open('d:/keil/prog/code_data.json', 'w', encoding='utf-8') as f:
-        f.write(analyzer.generate_json())
+    analyzer.generate_json()
 
 if __name__ == '__main__':
     main()
