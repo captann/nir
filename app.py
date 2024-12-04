@@ -3,11 +3,65 @@ import json
 import os
 import subprocess
 import re
+from datetime import datetime
 
 app = Flask(__name__)
 
 # Путь к JSON файлу
 JSON_FILE = 'code_data.json'
+BACKUP_DIR = 'backups'
+
+def create_backup():
+    """Create a backup of the current JSON file"""
+    if not os.path.exists(BACKUP_DIR):
+        os.makedirs(BACKUP_DIR)
+    
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    backup_file = os.path.join(BACKUP_DIR, f'code_data_{timestamp}.json')
+    
+    try:
+        if os.path.exists(JSON_FILE):
+            with open(JSON_FILE, 'r', encoding='utf-8') as src:
+                with open(backup_file, 'w', encoding='utf-8') as dst:
+                    dst.write(src.read())
+        return True
+    except Exception as e:
+        print(f"Ошибка при создании резервной копии: {str(e)}")
+        return False
+
+def load_json_data():
+    """Load data from JSON file with error handling"""
+    try:
+        with open(JSON_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {
+            'functions': [],
+            'constants': [],
+            'variables': [],
+            'structures': []
+        }
+    except json.JSONDecodeError:
+        if os.path.exists(JSON_FILE):
+            # Create backup of corrupted file
+            create_backup()
+        return {
+            'functions': [],
+            'constants': [],
+            'variables': [],
+            'structures': []
+        }
+
+def save_json_data(data):
+    """Save data to JSON file with backup"""
+    try:
+        create_backup()  # Create backup before saving
+        with open(JSON_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        print(f"Ошибка при сохранении данных: {str(e)}")
+        return False
 
 @app.route('/')
 def index():
@@ -15,25 +69,113 @@ def index():
 
 @app.route('/api/data')
 def get_data():
+    data = load_json_data()
+    return jsonify(data)
+
+@app.route('/api/update', methods=['POST'])
+def update_item():
+    data = request.json
+    item_id = data.get('id')
     try:
-        with open(JSON_FILE, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        return jsonify(data)
-    except FileNotFoundError:
+        # Проверяем наличие id
+        if not item_id:
+            return jsonify({
+                'success': False,
+                'error': 'Отсутствует ID объекта'
+            })
+
+        # Загружаем текущие данные
+        current_data = load_json_data()
+        
+        # Находим и обновляем объект в соответствующей категории
+        item_updated = False
+        categories = ['functions', 'constants', 'variables', 'structures']
+        
+        for category in categories:
+            items = current_data.get(category, [])
+            for i, item in enumerate(items):
+                if item.get('id') == item_id:
+                    # Обновляем существующие поля, сохраняя неизменные
+                    items[i] = {**item, **data}
+                    item_updated = True
+                    break
+            if item_updated:
+                break
+        
+        if not item_updated:
+            return jsonify({
+                'success': False,
+                'error': f'Объект с ID {item_id} не найден'
+            })
+            
+        # Сохраняем обновленные данные
+        if save_json_data(current_data):
+            return jsonify({
+                'success': True,
+                'message': f'Объект с ID {item_id} успешно обновлен'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Ошибка при сохранении данных'
+            })
+
+    except Exception as e:
         return jsonify({
-            'error': 'Файл code_data.json не найден',
-            'functions': [],
-            'constants': [],
-            'variables': [],
-            'structures': []
+            'success': False,
+            'error': str(e)
         })
-    except json.JSONDecodeError:
+
+@app.route('/api/validate', methods=['POST'])
+def validate_data():
+    """Validate data before updating"""
+    try:
+        data = request.json
+        item_type = data.get('type')
+        item_data = data.get('data')
+
+        if not all([item_type, item_data]):
+            return jsonify({
+                'valid': False,
+                'error': 'Отсутствуют необходимые данные'
+            })
+
+        # Базовая валидация для разных типов
+        if item_type == 'functions':
+            required_fields = ['name', 'description', 'scope']
+            if not all(field in item_data for field in required_fields):
+                return jsonify({
+                    'valid': False,
+                    'error': 'Отсутствуют обязательные поля для функции'
+                })
+        elif item_type == 'variables':
+            if 'name' not in item_data or 'type' not in item_data:
+                return jsonify({
+                    'valid': False,
+                    'error': 'Отсутствуют обязательные поля для переменной'
+                })
+        elif item_type == 'constants':
+            if 'name' not in item_data or 'value' not in item_data:
+                return jsonify({
+                    'valid': False,
+                    'error': 'Отсутствуют обязательные поля для константы'
+                })
+        elif item_type == 'structures':
+            if 'name' not in item_data or 'fields' not in item_data:
+                return jsonify({
+                    'valid': False,
+                    'error': 'Отсутствуют обязательные поля для структуры'
+                })
+
         return jsonify({
-            'error': 'Ошибка при чтении JSON файла',
-            'functions': [],
-            'constants': [],
-            'variables': [],
-            'structures': []
+            'valid': True,
+            'message': 'Данные прошли валидацию'
+        })
+
+    except Exception as e:
+        return jsonify({
+            'valid': False,
+            'error': str(e)
         })
 
 @app.route('/open_file')
