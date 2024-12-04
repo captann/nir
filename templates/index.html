@@ -843,7 +843,6 @@
 
                     <div class="modal-buttons">
                         <button class="modal-button save-button" onclick="saveChanges()">Сохранить</button>
-                        <button class="modal-button cancel-button" onclick="closeEditModal()">Отмена</button>
                     </div>
                 </div>
             </div>
@@ -1946,6 +1945,510 @@
             return scope === 'global' ? 'Глобальная' : 'Локальная';
         }
 
+        function openInEditor(filePath, line, linkElement) {
+            // Берем путь из текста ссылки и удаляем номер строки, если есть
+            const displayedPath = linkElement.textContent.trim();
+            // Если в пути есть номер строки (после последнего :)
+            const lastColonIndex = displayedPath.lastIndexOf(':');
+            const hasLineNumber = !isNaN(displayedPath.slice(lastColonIndex + 1));
+            
+            // Если последнее : отделяет номер строки, берем путь до него
+            const pathWithoutLine = hasLineNumber ? 
+                displayedPath.slice(0, lastColonIndex) : 
+                displayedPath;
+            
+            console.log('Путь из ссылки:', pathWithoutLine);
+            
+            // Создаем URI для Windsurf
+            const windsurfUri = `windsurf://file/${encodeURIComponent(pathWithoutLine)}:${line}`;
+            console.log('Windsurf URI:', windsurfUri);
+            
+            // Открываем ссылку
+            window.location.href = windsurfUri;
+        }
+
+        function viewItem(itemData, type) {
+            const modal = document.getElementById('viewModal');
+            const title = modal.querySelector('.view-title');
+            const content = modal.querySelector('.view-info');
+            
+            title.textContent = itemData.name;
+            
+            let htmlContent = '';
+            
+            // Общая информация для всех типов
+            htmlContent += `
+                <div class="view-section">
+                    <div class="view-row">
+                        <span class="view-label">Описание:</span>
+                        <span class="view-value">${itemData.description || 'Описание отсутствует'}</span>
+                    </div>
+                </div>
+            `;
+
+            // Добавляем информацию об использовании в коде
+            if (itemData.links_in_code && itemData.links_in_code.length > 0) {
+                htmlContent += `
+                    <div class="view-section">
+                        <h3>Использований в коде: ${itemData.links_in_code.length}</h3>
+                        <div class="code-links">
+                            ${itemData.links_in_code.map(link => {
+                                // Извлекаем путь к файлу, убирая весь текст после первого пробела
+                                const filePath = link.file_path.split(/\s+/)[0];
+                                return `
+                                    <div class="code-link-item">
+                                        <a href="#" class="file-link" 
+                                           onclick="openInEditor('${filePath}', ${link.line_number || 1}, this); return false;">
+                                            ${filePath}:${link.line_number || 1}
+                                        </a>
+                                        ${link.context ? `<span class="code-context">${link.context}</span>` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Специфичная информация для каждого типа
+            switch(type) {
+                case 'functions':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Статическая:</span>
+                                <span class="view-value">${itemData.is_static ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Входные параметры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${(itemData.input_params || []).map(param => `
+                                    <div class="view-table-row">
+                                        <span>${param.name || 'Нет имени'}</span>
+                                        <span>${param.type}</span>
+                                        <span>${param.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Выходные параметры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${(itemData.output_params || []).map(param => `
+                                    <div class="view-table-row">
+                                        <span>${param.name || 'Нет имени'}</span>
+                                        <span>${param.type}</span>
+                                        <span>${param.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'constants':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Значение:</span>
+                                <span class="view-value">${itemData.value !== undefined ? itemData.value : ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Тип:</span>
+                                <span class="view-value">${itemData.type || ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">#define:</span>
+                                <span class="view-value">${itemData.is_define ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'variables':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Тип:</span>
+                                <span class="view-value">${itemData.type || ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            ${itemData.valid_range ? `
+                                <div class="view-row">
+                                    <span class="view-label">Допустимый диапазон:</span>
+                                    <span class="view-value">
+                                        ${JSON.stringify(itemData.valid_range, null, 2)}
+                                    </span>
+                                </div>
+                            ` : ''}
+                            <div class="view-row">
+                                <span class="view-label">Статическая:</span>
+                                <span class="view-value">${itemData.is_static ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'structures':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Поля структуры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${itemData.fields.map(field => `
+                                    <div class="view-table-row">
+                                        <span>${field.name}</span>
+                                        <span>${field.type}</span>
+                                        <span>${field.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Размер:</span>
+                                <span class="view-value">${itemData.size} байт</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Выравнивание:</span>
+                                <span class="view-value">${itemData.alignment} байт</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Packed:</span>
+                                <span class="view-value">${itemData.packed ? 'Да' : 'Нет'}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Наследование:</span>
+                                <span class="view-value">${itemData.inheritance || ''}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            // Добавляем предупреждения, если есть
+            if (itemData.warnings) {
+                htmlContent += `
+                    <div class="view-section warning-section">
+                        <h3>Предупреждения</h3>
+                        <p>${itemData.warnings}</p>
+                    </div>
+                `;
+            }
+
+            // Добавляем теги, если есть
+            if (itemData.tags && itemData.tags.length > 0) {
+                htmlContent += `
+                    <div class="view-section">
+                        <h3>Теги</h3>
+                        <div class="view-tags">
+                            ${createTags(itemData.tags)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = htmlContent;
+            modal.style.display = 'block';
+        }
+
+        function formatValue(value, type) {
+            if (value === undefined || value === null || value === '') return '';
+            if (typeof value === 'boolean') {
+                return value ? 'Да' : 'Нет';
+            }
+            if (type === 'define') {
+                return value ? 'Да' : 'Нет';
+            }
+            return value;
+        }
+
+        function formatScope(scope) {
+            return scope === 'global' ? 'Глобальная' : 'Локальная';
+        }
+
+        function openInEditor(filePath, line, linkElement) {
+            // Берем путь из текста ссылки и удаляем номер строки, если есть
+            const displayedPath = linkElement.textContent.trim();
+            // Если в пути есть номер строки (после последнего :)
+            const lastColonIndex = displayedPath.lastIndexOf(':');
+            const hasLineNumber = !isNaN(displayedPath.slice(lastColonIndex + 1));
+            
+            // Если последнее : отделяет номер строки, берем путь до него
+            const pathWithoutLine = hasLineNumber ? 
+                displayedPath.slice(0, lastColonIndex) : 
+                displayedPath;
+            
+            console.log('Путь из ссылки:', pathWithoutLine);
+            
+            // Создаем URI для Windsurf
+            const windsurfUri = `windsurf://file/${encodeURIComponent(pathWithoutLine)}:${line}`;
+            console.log('Windsurf URI:', windsurfUri);
+            
+            // Открываем ссылку
+            window.location.href = windsurfUri;
+        }
+
+        function viewItem(itemData, type) {
+            const modal = document.getElementById('viewModal');
+            const title = modal.querySelector('.view-title');
+            const content = modal.querySelector('.view-info');
+            
+            title.textContent = itemData.name;
+            
+            let htmlContent = '';
+            
+            // Общая информация для всех типов
+            htmlContent += `
+                <div class="view-section">
+                    <div class="view-row">
+                        <span class="view-label">Описание:</span>
+                        <span class="view-value">${itemData.description || 'Описание отсутствует'}</span>
+                    </div>
+                </div>
+            `;
+
+            // Добавляем информацию об использовании в коде
+            if (itemData.links_in_code && itemData.links_in_code.length > 0) {
+                htmlContent += `
+                    <div class="view-section">
+                        <h3>Использований в коде: ${itemData.links_in_code.length}</h3>
+                        <div class="code-links">
+                            ${itemData.links_in_code.map(link => {
+                                // Извлекаем путь к файлу, убирая весь текст после первого пробела
+                                const filePath = link.file_path.split(/\s+/)[0];
+                                return `
+                                    <div class="code-link-item">
+                                        <a href="#" class="file-link" 
+                                           onclick="openInEditor('${filePath}', ${link.line_number || 1}, this); return false;">
+                                            ${filePath}:${link.line_number || 1}
+                                        </a>
+                                        ${link.context ? `<span class="code-context">${link.context}</span>` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Специфичная информация для каждого типа
+            switch(type) {
+                case 'functions':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Статическая:</span>
+                                <span class="view-value">${itemData.is_static ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Входные параметры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${(itemData.input_params || []).map(param => `
+                                    <div class="view-table-row">
+                                        <span>${param.name || 'Нет имени'}</span>
+                                        <span>${param.type}</span>
+                                        <span>${param.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Выходные параметры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${(itemData.output_params || []).map(param => `
+                                    <div class="view-table-row">
+                                        <span>${param.name || 'Нет имени'}</span>
+                                        <span>${param.type}</span>
+                                        <span>${param.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'constants':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Значение:</span>
+                                <span class="view-value">${itemData.value !== undefined ? itemData.value : ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Тип:</span>
+                                <span class="view-value">${itemData.type || ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">#define:</span>
+                                <span class="view-value">${itemData.is_define ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'variables':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Тип:</span>
+                                <span class="view-value">${itemData.type || ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            ${itemData.valid_range ? `
+                                <div class="view-row">
+                                    <span class="view-label">Допустимый диапазон:</span>
+                                    <span class="view-value">
+                                        ${JSON.stringify(itemData.valid_range, null, 2)}
+                                    </span>
+                                </div>
+                            ` : ''}
+                            <div class="view-row">
+                                <span class="view-label">Статическая:</span>
+                                <span class="view-value">${itemData.is_static ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'structures':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Поля структуры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${itemData.fields.map(field => `
+                                    <div class="view-table-row">
+                                        <span>${field.name}</span>
+                                        <span>${field.type}</span>
+                                        <span>${field.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Размер:</span>
+                                <span class="view-value">${itemData.size} байт</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Выравнивание:</span>
+                                <span class="view-value">${itemData.alignment} байт</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Packed:</span>
+                                <span class="view-value">${itemData.packed ? 'Да' : 'Нет'}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Наследование:</span>
+                                <span class="view-value">${itemData.inheritance || ''}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            // Добавляем предупреждения, если есть
+            if (itemData.warnings) {
+                htmlContent += `
+                    <div class="view-section warning-section">
+                        <h3>Предупреждения</h3>
+                        <p>${itemData.warnings}</p>
+                    </div>
+                `;
+            }
+
+            // Добавляем теги, если есть
+            if (itemData.tags && itemData.tags.length > 0) {
+                htmlContent += `
+                    <div class="view-section">
+                        <h3>Теги</h3>
+                        <div class="view-tags">
+                            ${createTags(itemData.tags)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = htmlContent;
+            modal.style.display = 'block';
+        }
+
+        function formatValue(value, type) {
+            if (value === undefined || value === null || value === '') return '';
+            if (typeof value === 'boolean') {
+                return value ? 'Да' : 'Нет';
+            }
+            if (type === 'define') {
+                return value ? 'Да' : 'Нет';
+            }
+            return value;
+        }
+
+        function formatScope(scope) {
+            return scope === 'global' ? 'Глобальная' : 'Локальная';
+        }
+
         function openEditModal(itemData, type) {
             console.log('Opening modal with:', type, itemData);
             const modal = document.getElementById('editModal');
@@ -2095,7 +2598,6 @@
             htmlContent += `
                 <div class="modal-buttons">
                     <button class="modal-button save-button" onclick="saveChanges('${type}')">Сохранить</button>
-                    <button class="modal-button cancel-button" onclick="closeEditModal()">Отмена</button>
                 </div>
             `;
 
@@ -2260,7 +2762,10 @@
         const editForm = document.getElementById('editForm');
 
         function closeModal() {
-            modal.style.display = 'none';
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                modal.style.display = 'none';
+            });
         }
 
         closeBtn.onclick = closeModal;
