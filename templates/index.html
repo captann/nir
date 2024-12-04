@@ -787,7 +787,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="view-title">Редактирование элемента</h3>
-                <span class="modal-close" onclick="closeEditModal()">&times;</span>
+                <span class="modal-close" onclick="closeModal()">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="view-info">
@@ -1035,6 +1035,10 @@
                 
                 const response = await fetch('/api/data');
                 const data = await response.json();
+                data.functions = data.functions.filter(item => !item.is_deleted);
+data.constants = data.constants.filter(item => !item.is_deleted);
+data.variables = data.variables.filter(item => !item.is_deleted);
+data.structures = data.structures.filter(item => !item.is_deleted);
                 
                 document.getElementById('loading').style.display = 'none';
                 
@@ -1097,7 +1101,7 @@
             functions.forEach(func => {
                 const element = document.createElement('div');
                 element.className = `item ${func.deprecated ? 'deprecated' : ''}`;
-                element.dataset.id = func.name;
+                element.dataset.id = func.id;
                 element.dataset.type = 'functions';
                 element.dataset.itemData = JSON.stringify(func);
                 element.innerHTML = `
@@ -2684,7 +2688,7 @@
                 alert('Ошибка при отправке запроса');
             });
 
-            closeEditModal();
+            closeModal();
         }
 
         function addFieldRow() {
@@ -2722,19 +2726,37 @@
             openEditModal(itemData, itemType);
         }
 
-        function deleteItem(button) {
-            if (confirm('Вы уверены, что хотите удалить этот элемент?')) {
-                const item = button.closest('.item');
-                const itemId = item.dataset.id;
-                const itemType = item.dataset.type;
+        async function deleteItem(button) {
+            if (!confirm('Вы уверены, что хотите удалить этот элемент?')) {
+        return;
+    }
+            // Получаем ID элемента из data-атрибута
+            const itemId = button.closest('.item').getAttribute('data-id');
+            alert(itemId);
 
-                // Удаляем элемент из данных
-                currentData[itemType] = currentData[itemType].filter(i => i.name !== itemId);
-                // Обновляем отображение
-                filterItems(itemType, document.getElementById('searchInput').value.toLowerCase());
-                // Обновляем счетчик
-                document.getElementById(`${itemType}-count`).textContent = currentData[itemType].length;
-            }
+
+try {
+    const response = await fetch('/api/delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            id: itemId
+        })
+    });
+
+    const result = await response.json();
+    
+    if (response.ok) {
+        loadData(); // Перезагружаем данные
+    } else {
+        alert('Ошибка при удалении: ' + result.error, 'error');
+    }
+} catch (error) {
+    console.error('Error deleting item:', error);
+    alert('Ошибка при удалении элемента', 'error');
+}
         }
 
         window.addEventListener('load', () => {
@@ -2769,7 +2791,7 @@
         }
 
         closeBtn.onclick = closeModal;
-        cancelBtn.onclick = closeModal;
+        //cancelBtn.onclick = closeModal;
 
         window.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
