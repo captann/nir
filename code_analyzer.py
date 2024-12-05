@@ -463,7 +463,7 @@ class CodeAnalyzer:
         return data
 
 def main():
-    analyzer = CodeAnalyzer('d:/keil/prog/src')
+    analyzer = CodeAnalyzer('d:/keil/prog/src2')
     analyzer.analyze_directory()
     
     # Сохранение результатов в файл

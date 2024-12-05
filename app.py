@@ -364,8 +364,14 @@ def delete_item():
 
 @app.route('/favicon.ico')
 def favicon():
+    # Определяем предпочтительную цветовую схему из заголовка запроса
+    prefers_dark = request.headers.get('Sec-CH-Prefers-Color-Scheme', 'light') == 'dark'
+    
+    # Выбираем соответствующий файл иконки
+    icon_file = 'favicon-dark.ico' if prefers_dark else 'favicon-light.ico'
+    
     return send_from_directory(os.path.join(app.root_path, 'static'),
-                             'favicon.ico', mimetype='image/vnd.microsoft.icon')
+                             icon_file, mimetype='image/vnd.microsoft.icon')
 
 if __name__ == '__main__':
     # Настраиваем парсер аргументов командной строки
