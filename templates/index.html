@@ -1205,6 +1205,26 @@
     </div>
 
     <script>
+        function getSelectedTab() {
+    const match = document.cookie.match(new RegExp('(^| )selectedTab=([^;]+)'));
+    return match ? match[2] : null;
+}
+        document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', () => {
+        const selectedTab = button.getAttribute('data-tab');
+        document.cookie = `selectedTab=${selectedTab}; path=/`;
+    });
+    window.addEventListener('load', () => {
+    const selectedTab = getSelectedTab();
+    if (selectedTab) {
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.toggle('active', button.getAttribute('data-tab') === selectedTab);
+        });
+    }
+});
+
+
+});
         let currentData = {
             functions: [],
             constants: [],
@@ -1326,7 +1346,12 @@ data.structures = data.structures.filter(item => !item.is_deleted);
                 displayStructures(currentData.structures);
                 
                 // Показываем первую секцию по умолчанию
-                document.querySelector('.tab-button[data-tab="functions"]').click();
+                const selectedTab = getSelectedTab();
+if (selectedTab) {
+    document.querySelector(`.tab-button[data-tab="${selectedTab}"]`).click();
+} else {
+    document.querySelector('.tab-button[data-tab="functions"]').click();
+}
             } catch (error) {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('error-container').textContent = 'Ошибка загрузки данных: ' + error.message;
@@ -2133,7 +2158,6 @@ data.structures = data.structures.filter(item => !item.is_deleted);
 
         function editItem(button) {
             const item = button.closest('.item');
-            const itemId = item.dataset.id;
             const itemType = item.dataset.type;
             const itemData = JSON.parse(item.dataset.itemData);
 
@@ -2145,31 +2169,31 @@ data.structures = data.structures.filter(item => !item.is_deleted);
         return;
     }
             // Получаем ID элемента из data-атрибута
-            const itemId = button.closest('.item').getAttribute('data-id');
+            const item = button.closest('.item');
+            const itemData = JSON.parse(item.dataset.itemData);
+            const itemId = itemData.id;
+            try {
+                const response = await fetch('/api/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: itemId
+                    })
+                });
 
-
-try {
-    const response = await fetch('/api/delete', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            id: itemId
-        })
-    });
-
-    const result = await response.json();
-    
-    if (response.ok) {
-        loadData(); // Перезагружаем данные
-    } else {
-        alert('Ошибка при удалении: ' + result.error, 'error');
-    }
-} catch (error) {
-    console.error('Error deleting item:', error);
-    alert('Ошибка при удалении элемента', 'error');
-}
+                const result = await response.json();
+                
+                if (response.ok) {
+                    loadData(); // Перезагружаем данные
+                } else {
+                    alert('Ошибка при удалении: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                alert('Ошибка при удалении элемента', 'error');
+            }
         }
 
         function viewItem(itemData, type) {
@@ -2472,6 +2496,8 @@ try {
             window.location.href = windsurfUri;
             return false; // Предотвращаем действие по умолчанию
         }
+        
+        
     </script>
 </body>
 </html>
