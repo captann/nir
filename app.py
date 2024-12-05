@@ -141,8 +141,15 @@ def index():
         data = load_json_data()
         latest_version = get_latest_version_number()
         
+        # Проверяем, является ли версия допустимой
+        if VERSION is not None and VERSION <= 0:
+            print(f"Указана недопустимая версия {VERSION}, будет использована последняя версия")
+            return render_template('index.html', data=data, 
+                                version_info=f"Версия файла: последняя", 
+                                current_file=os.path.abspath(get_json_file()))
+        
         # Проверяем, является ли текущая версия последней
-        is_latest = VERSION is None or (latest_version is not None and VERSION == latest_version)
+        is_latest = VERSION is None or (latest_version is not None and VERSION >= latest_version)
         version_text = "Версия файла: последняя" if is_latest else f"Версия файла: {VERSION} из {latest_version}"
         
         current_file = os.path.abspath(get_json_file())
@@ -388,6 +395,5 @@ if __name__ == '__main__':
             print(f"Используется файл версии {VERSION}: {json_file}")
         except FileNotFoundError:
             print(f"Версия {VERSION} не найдена, будет использована последняя версия")
-            VERSION = None
-    
+            VERSION = None 
     app.run(debug=True, port=5000)
