@@ -143,7 +143,7 @@ def index():
         
         # Проверяем, является ли текущая версия последней
         is_latest = VERSION is None or (latest_version is not None and VERSION == latest_version)
-        version_text = "Последняя версия" if is_latest else f"Версия {VERSION}"
+        version_text = "Версия файла: последняя" if is_latest else f"Версия файла: {VERSION} из {latest_version}"
         
         current_file = os.path.abspath(get_json_file())
         return render_template('index.html', data=data, version_info=version_text, current_file=current_file)
