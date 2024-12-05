@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 import json
 import os
 import subprocess
@@ -6,6 +6,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 import argparse
+import urllib.parse
 
 app = Flask(__name__)
 BACKUP_DIR = 'backups'
@@ -116,12 +117,35 @@ def save_json_data(data):
         print(f"Ошибка при сохранении данных: {e}")
         return False
 
+def get_latest_version_number():
+    """Получает номер последней версии"""
+    try:
+        versions_dir = Path(VERSIONS_DIR)
+        if not versions_dir.exists():
+            return None
+        
+        version_files = list(versions_dir.glob('code_data_*.json'))
+        if not version_files:
+            return None
+        
+        return max(
+            int(f.stem.split('_')[-1])
+            for f in version_files
+        )
+    except Exception:
+        return None
+
 @app.route('/')
 def index():
     try:
         data = load_json_data()
-        version_text = f"Версия {VERSION}" if VERSION is not None else "Последняя версия"
-        current_file = os.path.abspath(get_json_file())  # Получаем абсолютный путь
+        latest_version = get_latest_version_number()
+        
+        # Проверяем, является ли текущая версия последней
+        is_latest = VERSION is None or (latest_version is not None and VERSION == latest_version)
+        version_text = "Последняя версия" if is_latest else f"Версия {VERSION}"
+        
+        current_file = os.path.abspath(get_json_file())
         return render_template('index.html', data=data, version_info=version_text, current_file=current_file)
     except Exception as e:
         return f"Ошибка при загрузке данных: {str(e)}"
@@ -133,9 +157,10 @@ def get_data():
 
 @app.route('/api/update', methods=['POST'])
 def update_item():
-    data = request.json
-    item_id = data.get('id')
     try:
+        data = request.json
+        item_id = data.get('id')
+        
         # Проверяем наличие id
         if not item_id:
             return jsonify({
@@ -190,12 +215,22 @@ def update_item():
         # Находим и обновляем объект в соответствующей категории
         item_updated = False
         categories = ['functions', 'constants', 'variables', 'structures']
+        
         for category in categories:
             items = current_data.get(category, [])
             for i, item in enumerate(items):
                 if item.get('id') == item_id:
                     # Обновляем существующие поля, сохраняя неизменные
                     items[i] = {**item, **data}
+                    
+                    # Преобразуем формат links_in_code
+                    if 'links_in_code' in data:
+
+                        items[i]['links_in_code'] = [{
+                            'file_path': link.get('file', ''),  # кодируем путь, сохраняя слеши
+                            'line_number': link.get('line', 1)
+                        } for link in data['links_in_code']]
+                    
                     item_updated = True
                     break
             if item_updated:
@@ -218,15 +253,14 @@ def update_item():
                 'success': False,
                 'error': 'Ошибка при сохранении данных'
             })
-
     except Exception as e:
+        print(e.args)
         return jsonify({
             'success': False,
             'error': str(e)
         })
 
-@app.route('/api/validate', methods=['POST'])
-def validate_data():
+
     """Validate data before updating"""
     try:
         data = request.json
@@ -327,8 +361,7 @@ def delete_item():
             'error': str(e)
         }), 500
 
-@app.route('/open_file')
-def open_file():
+
     try:
         file_path = request.args.get('file')
         line_number = request.args.get('line', 1, type=int)
@@ -336,6 +369,7 @@ def open_file():
         print('1. Полученный путь:', file_path)
         
         # Если путь начинается с диска, используем его как есть
+        
         if re.match(r'^[a-zA-Z]:', file_path):
             abs_path = file_path
         else:
@@ -397,6 +431,11 @@ def open_file():
             'success': False, 
             'error': f'Ошибка при открытии файла:\n{str(e)}\n\nStack trace:\n{traceback.format_exc()}'
         })
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                             'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == '__main__':
     # Настраиваем парсер аргументов командной строки

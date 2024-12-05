@@ -146,6 +146,25 @@
             animation: pulse 1.5s infinite;
         }
 
+        /* Стилизация скроллбара */
+        .tabs::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .tabs::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        .tabs::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .tabs::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
         /* Стили для навигационного меню */
         .tabs {
             display: flex;
@@ -317,6 +336,36 @@
 
         .delete-button:hover {
             background-color: #b91c1c;
+        }
+
+        /* Применяем те же стили к крестикам в структуре */
+        .structure-row  {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 5px;
+            transition: color 0.3s ease;
+        }
+
+        .structure-row :hover {
+            color: #ff0000;
+        }
+
+        /* Обновляем стили для всех кнопок удаления */
+        button[onclick*="delete"] {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 5px;
+            transition: color 0.3s ease;
+        }
+
+        button[onclick*="delete"]:hover {
+            color: #ffffff;
         }
 
         /* Стили для модального окна редактирования */
@@ -676,14 +725,6 @@
             width: 100%;
         }
 
-        .delete-btn {
-            padding: 4px 8px;
-            background-color: #ff1744;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
 
         .add-field-btn {
             padding: 8px 16px;
@@ -746,11 +787,209 @@
         .add-field-btn:hover {
             background: #45a049;
         }
+
+        /* Общие стили для всех таблиц */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        table th,
+        table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        table th {
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        table input {
+            width: 100%;
+            padding: 6px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+        }
+
+        table input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+        }
+
+        .params-fields {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .params-fields .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr 30px;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .params-fields .field-row.header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .params-fields .field-row input {
+            width: 100%;
+            padding: 6px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+        }
+
+
+        .input-with-delete {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-with-delete input {
+            flex: 1;
+        }
+
+        /* Стили для новой секции */
+        .code-location-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        .code-location-section h3 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+        }
+
+        .code-locations-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        .code-locations-table th,
+        .code-locations-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .code-locations-table th {
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .code-locations-table input {
+            width: 100%;
+            padding: 6px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+        }
+
+        .add-row-button {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .add-row-button:hover {
+            background-color: #45a049;
+        }
+
+
+        .delete-location:hover {
+            background-color: var(--warning-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        
+        .plus-icon {
+            font-style: normal;
+            font-weight: bold;
+        }
+
+        /* Добавляем стили для input file */
+        .file-input-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .file-input-container input[type="file"] {
+            display: none;
+        }
+
+        .file-input-container .file-input-trigger {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 6px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .file-input-container .file-input-trigger:hover {
+            background-color: var(--hover-color);
+        }
+
+        .file-input-container .file-path {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-input-container .browse-button {
+            margin-left: 8px;
+            padding: 2px 8px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }
+
+        /* Добавляем кнопку удаления в столбец со строкой и соответствующие стили */
+        .location-line-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
     </style>
 </head>
 <body>
+
     <div class="container">
+        <a href="#" class="version-link" data-filepath="{{ current_file }}" onclick="openVersionFile(this)" style="margin-left: 10px; font-size: 0.8em; color: var(--text-secondary);">{{ version_info }}</a>
+
         <h1>Анализатор кода</h1>
+
         
         <div class="tabs">
             <button class="tab-button active" data-tab="functions">
@@ -784,7 +1023,6 @@
                     <i class="tab-icon">➕</i>
                     Добавить
                 </button>
-                <a href="#" class="version-link" data-filepath="{{ current_file }}" onclick="openVersionFile(this)" style="margin-left: 10px; font-size: 0.8em; color: var(--text-secondary);">{{ version_info }}</a>
         </div>
 
         <div id="error-container" class="error-message" style="display: none;"></div>
@@ -866,6 +1104,27 @@
                         </div>
                     </div>
 
+                    <!-- Секция для указания расположения в коде -->
+                    <div class="view-section code-location-section">
+                        <h3>Использование в коде</h3>
+                        <div class="table-container">
+                            <table class="code-locations-table">
+                                <thead>
+                                    <tr>
+                                        <th>Файл</th>
+                                        <th>Строка</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="codeLocationsBody">
+                                    <!-- Строки будут добавляться динамически -->
+                                </tbody>
+                            </table>
+                            <button type="button" class="add-row-button" onclick="addCodeLocationRow()">
+                                <i class="plus-icon">+</i> Добавить использование
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="modal-buttons">
                         <button class="modal-button save-button" onclick="saveChanges()">Сохранить</button>
                     </div>
@@ -881,6 +1140,7 @@
             <div id="viewContent">
                 <h2 class="view-title"></h2>
                 <div class="view-info">
+                    <!-- Основная информация -->
                     <div class="view-section">
                         <div class="view-row">
                             <div class="view-label">Описание:</div>
@@ -888,6 +1148,7 @@
                         </div>
                     </div>
 
+                    <!-- Технические детали -->
                     <div class="view-section">
                         <h3>Технические детали</h3>
                         <div class="view-row">
@@ -904,58 +1165,28 @@
                         </div>
                     </div>
 
-                    <div class="view-section">
-                        <h3>Поля структуры</h3>
-                        <div class="view-table">
-                            <div class="view-table-header">
-                                <span>Имя</span>
-                                <span>Тип</span>
-                                <span>Описание</span>
-                            </div>
-                            ${(itemData.fields || []).map(field => `
-                                <div class="view-table-row">
-                                    <span>${field.name}</span>
-                                    <span>${field.type}</span>
-                                    <span>${field.description || 'Нет описания'}</span>
-                                </div>
-                            `).join('')}
+                    <!-- Секция для функций -->
+                    <div class="view-section" id="editFunctionsSection">
+                        <h3>Параметры функции</h3>
+                        <div class="view-row">
+                            <div class="view-label">Область видимости:</div>
+                            <div class="view-value">${itemData.scope}</div>
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Статическая:</div>
+                            <div class="view-value">${itemData.is_static ? 'Да' : 'Нет'}</div>
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Входные параметры:</div>
+                            <div class="view-value">${itemData.input_params.map(param => `${param.name} (${param.type})`).join(', ')}</div>
+                        </div>
+                        <div class="view-row">
+                            <div class="view-label">Выходные параметры:</div>
+                            <div class="view-value">${itemData.output_params.map(param => `${param.name} (${param.type})`).join(', ')}</div>
                         </div>
                     </div>
 
-                    <div class="view-section">
-                        <h3>Технические детали</h3>
-                        <div class="view-row">
-                            <div class="view-label">Размер:</div>
-                            <div class="view-value">${itemData.size} байт</div>
-                        </div>
-                        <div class="view-row">
-                            <div class="view-label">Выравнивание:</div>
-                            <div class="view-value">${itemData.alignment} байт</div>
-                        </div>
-                        <div class="view-row">
-                            <div class="view-label">Packed:</div>
-                            <div class="view-value">${itemData.packed ? 'Да' : 'Нет'}</div>
-                        </div>
-                        <div class="view-row">
-                            <div class="view-label">Наследование:</div>
-                            <div class="view-value">${itemData.inheritance || ''}</div>
-                        </div>
-                    </div>
-
-                    <div class="view-section">
-                        <h3>Использований в коде: ${itemData.links_in_code.length}</h3>
-                        <div class="code-links">
-                            ${itemData.links_in_code.map(link => `
-                                <div class="code-link-item">
-                                    <a href="#" class="file-link" 
-                                       onclick="openInEditor('${link.file_path}', ${link.line_number || 1}, this); return false;">
-                                        ${link.file_path}:${link.line_number || 1}
-                                    </a>
-                                    ${link.context ? `<span class="code-context">${link.context}</span>` : ''}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
+                   
 
                     <div class="view-section">
                         <h3>Предупреждения</h3>
@@ -1016,8 +1247,9 @@
 
             // Обработчик поиска
             searchInput.addEventListener('input', (e) => {
-                const activeTab = document.querySelector('.tab-button.active').dataset.tab;
-                filterItems(activeTab, e.target.value.toLowerCase());
+                const activeTab = document.querySelector('.tabs .active');
+                
+                filterItems(activeTab.dataset.tab, e.target.value.toLowerCase());
             });
         }
 
@@ -1218,141 +1450,17 @@ data.structures = data.structures.filter(item => !item.is_deleted);
 
         // Функция для открытия файла в Windsurf
         function openInEditor(filePath, line, linkElement) {
-            // Берем путь из текста ссылки и удаляем номер строки, если есть
-            const displayedPath = linkElement.textContent.trim();
-            // Если в пути есть номер строки (после последнего :)
-            const lastColonIndex = displayedPath.lastIndexOf(':');
-            const hasLineNumber = !isNaN(displayedPath.slice(lastColonIndex + 1));
-            
-            // Если последнее : отделяет номер строки, берем путь до него
-            const pathWithoutLine = hasLineNumber ? 
-                displayedPath.slice(0, lastColonIndex) : 
-                displayedPath;
-            
-            console.log('Путь из ссылки:', pathWithoutLine);
-            
-            // Создаем URI для Windsurf
-            const windsurfUri = `windsurf://file/${encodeURIComponent(pathWithoutLine)}:${line}`;
-            console.log('Windsurf URI:', windsurfUri);
-            
-            // Открываем ссылку
-            window.location.href = windsurfUri;
-        }
-
-        
-
-        function formatValue(value, type) {
-            if (value === undefined || value === null || value === '') return '';
-            if (typeof value === 'boolean') {
-                return value ? 'Да' : 'Нет';
+            if (!filePath) {
+                console.error('Путь к файлу не указан');
+                return;
             }
-            if (type === 'define') {
-                return value ? 'Да' : 'Нет';
-            }
-            return value;
-        }
+            filePath = filePath.split('?').join('\\').toLowerCase();
 
-        function formatScope(scope) {
-            return scope === 'global' ? 'Глобальная' : 'Локальная';
-        }
-
-        function openInEditor(filePath, line, linkElement) {
-            // Берем путь из текста ссылки и удаляем номер строки, если есть
-            const displayedPath = linkElement.textContent.trim();
-            // Если в пути есть номер строки (после последнего :)
-            const lastColonIndex = displayedPath.lastIndexOf(':');
-            const hasLineNumber = !isNaN(displayedPath.slice(lastColonIndex + 1));
+            // Путь уже закодирован на сервере
+            const windsurfUri = `windsurf://file/${filePath}${line ? `?line=${line}` : ''}`;
             
-            // Если последнее : отделяет номер строки, берем путь до него
-            const pathWithoutLine = hasLineNumber ? 
-                displayedPath.slice(0, lastColonIndex) : 
-                displayedPath;
-            
-            console.log('Путь из ссылки:', pathWithoutLine);
-            
-            // Создаем URI для Windsurf
-            const windsurfUri = `windsurf://file/${encodeURIComponent(pathWithoutLine)}:${line}`;
-            console.log('Windsurf URI:', windsurfUri);
-            
-            // Открываем ссылку
-            window.location.href = windsurfUri;
-        }
-
-        
-
-        function formatValue(value, type) {
-            if (value === undefined || value === null || value === '') return '';
-            if (typeof value === 'boolean') {
-                return value ? 'Да' : 'Нет';
-            }
-            if (type === 'define') {
-                return value ? 'Да' : 'Нет';
-            }
-            return value;
-        }
-
-        function formatScope(scope) {
-            return scope === 'global' ? 'Глобальная' : 'Локальная';
-        }
-
-        function openInEditor(filePath, line, linkElement) {
-            // Берем путь из текста ссылки и удаляем номер строки, если есть
-            const displayedPath = linkElement.textContent.trim();
-            // Если в пути есть номер строки (после последнего :)
-            const lastColonIndex = displayedPath.lastIndexOf(':');
-            const hasLineNumber = !isNaN(displayedPath.slice(lastColonIndex + 1));
-            
-            // Если последнее : отделяет номер строки, берем путь до него
-            const pathWithoutLine = hasLineNumber ? 
-                displayedPath.slice(0, lastColonIndex) : 
-                displayedPath;
-            
-            console.log('Путь из ссылки:', pathWithoutLine);
-            
-            // Создаем URI для Windsurf
-            const windsurfUri = `windsurf://file/${encodeURIComponent(pathWithoutLine)}:${line}`;
-            console.log('Windsurf URI:', windsurfUri);
-            
-            // Открываем ссылку
-            window.location.href = windsurfUri;
-        }
-
-        
-
-        function formatValue(value, type) {
-            if (value === undefined || value === null || value === '') return '';
-            if (typeof value === 'boolean') {
-                return value ? 'Да' : 'Нет';
-            }
-            if (type === 'define') {
-                return value ? 'Да' : 'Нет';
-            }
-            return value;
-        }
-
-        function formatScope(scope) {
-            return scope === 'global' ? 'Глобальная' : 'Локальная';
-        }
-
-        function openInEditor(filePath, line, linkElement) {
-            // Берем путь из текста ссылки и удаляем номер строки, если есть
-            const displayedPath = linkElement.textContent.trim();
-            // Если в пути есть номер строки (после последнего :)
-            const lastColonIndex = displayedPath.lastIndexOf(':');
-            const hasLineNumber = !isNaN(displayedPath.slice(lastColonIndex + 1));
-            
-            // Если последнее : отделяет номер строки, берем путь до него
-            const pathWithoutLine = hasLineNumber ? 
-                displayedPath.slice(0, lastColonIndex) : 
-                displayedPath;
-            
-            console.log('Путь из ссылки:', pathWithoutLine);
-            
-            // Создаем URI для Windsurf
-            const windsurfUri = `windsurf://file/${encodeURIComponent(pathWithoutLine)}:${line}`;
-            console.log('Windsurf URI:', windsurfUri);
-            
-            // Открываем ссылку
+            console.log('Opening file:', filePath);
+            console.log('URI:', windsurfUri);
             window.location.href = windsurfUri;
         }
 
@@ -1450,23 +1558,21 @@ data.structures = data.structures.filter(item => !item.is_deleted);
                 htmlContent += `
                     <div class="view-section">
                         <h3>Поля структуры</h3>
-                        <div class="structure-fields" id="structureFields">
-                            <div class="field-row header">
-                                <span>Имя</span>
-                                <span>Тип</span>
-                                <span>Описание</span>
-                                <span></span>
-                            </div>
-                            ${(itemData.fields || []).map(field => `
-                                <div class="field-row">
-                                    <input type="text" value="${field.name || ''}" placeholder="Имя">
-                                    <input type="text" value="${field.type || ''}" placeholder="Тип">
-                                    <input type="text" value="${field.description || ''}" placeholder="Описание">
-                                    <button class="delete-btn" onclick="this.parentElement.remove()">×</button>
-                                </div>
-                            `).join('')}
+                        <div class="params-fields">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Имя</th>
+                                        <th>Тип</th>
+                                        <th>Описание</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="structFieldsBody">
+                                </tbody>
+                            </table>
+                            <button class="add-field-btn" onclick="addFieldRow()">+ Добавить поле</button>
                         </div>
-                        <button class="add-field-btn" onclick="addFieldRow()">+ Добавить поле</button>
                     </div>
                 `;
             } else if (type === 'functions') {
@@ -1491,42 +1597,54 @@ data.structures = data.structures.filter(item => !item.is_deleted);
                     <div class="view-section">
                         <h3>Входные параметры</h3>
                         <div class="params-fields" id="inputParamsFields">
-                            <div class="field-row header">
-                                <span>Имя</span>
-                                <span>Тип</span>
-                                <span>Описание</span>
-                                <span></span>
-                            </div>
-                            ${(itemData.input_params || []).map(param => `
-                                <div class="field-row">
-                                    <input type="text" value="${param.name || ''}" placeholder="Имя">
-                                    <input type="text" value="${param.type || ''}" placeholder="Тип">
-                                    <input type="text" value="${param.description || ''}" placeholder="Описание">
-                                    <button class="delete-btn" onclick="this.parentElement.remove()">×</button>
-                                </div>
-                            `).join('')}
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Имя</th>
+                                        <th>Тип</th>
+                                        <th>Описание</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inputParamsBody">
+                                    ${(itemData.input_params || []).map(param => `
+                                        <tr>
+                                            <td><input type="text" value="${param.name || ''}" placeholder="Имя"></td>
+                                            <td><input type="text" value="${param.type || ''}" placeholder="Тип"></td>
+                                            <td><input type="text" value="${param.description || ''}" placeholder="Описание"></td>
+                                            <td><button class="delete-location" onclick="deleteParamRow(this)">×</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                            <button class="add-field-btn" onclick="addParamRow('inputParamsBody')">+ Добавить параметр</button>
                         </div>
-                        <button class="add-field-btn" onclick="addParamRow('inputParamsFields')">+ Добавить параметр</button>
                     </div>
                     <div class="view-section">
                         <h3>Выходные параметры</h3>
                         <div class="params-fields" id="outputParamsFields">
-                            <div class="field-row header">
-                                <span>Имя</span>
-                                <span>Тип</span>
-                                <span>Описание</span>
-                                <span></span>
-                            </div>
-                            ${(itemData.output_params || []).map(param => `
-                                <div class="field-row">
-                                    <input type="text" value="${param.name || ''}" placeholder="Имя">
-                                    <input type="text" value="${param.type || ''}" placeholder="Тип">
-                                    <input type="text" value="${param.description || ''}" placeholder="Описание">
-                                    <button class="delete-btn" onclick="this.parentElement.remove()">×</button>
-                                </div>
-                            `).join('')}
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Имя</th>
+                                        <th>Тип</th>
+                                        <th>Описание</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="outputParamsBody">
+                                    ${(itemData.output_params || []).map(param => `
+                                        <tr>
+                                            <td><input type="text" value="${param.name || ''}" placeholder="Имя"></td>
+                                            <td><input type="text" value="${param.type || ''}" placeholder="Тип"></td>
+                                            <td><input type="text" value="${param.description || ''}" placeholder="Описание"></td>
+                                            <td><button class="delete-location" onclick="deleteParamRow(this)">×</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                            <button class="add-field-btn" onclick="addParamRow('outputParamsBody')">+ Добавить параметр</button>
                         </div>
-                        <button class="add-field-btn" onclick="addParamRow('outputParamsFields')">+ Добавить параметр</button>
                     </div>
                 `;
             } else if (type === 'constants' || type === 'variables') {
@@ -1568,6 +1686,41 @@ data.structures = data.structures.filter(item => !item.is_deleted);
                 `;
             }
 
+            // Добавляем секцию для указания расположения в коде
+            htmlContent += `
+                <div class="view-section code-location-section">
+                    <h3>Использования в коде</h3>
+                    <div class="table-container">
+                        <table class="code-locations-table">
+                            <thead>
+                                <tr>
+                                    <th>Файл</th>
+                                    <th>Строка</th>
+                                </tr>
+                            </thead>
+                            <tbody id="codeLocationsBody">
+                                ${(itemData.links_in_code || []).map(location => `
+                                    <tr>
+                                        <td><input type="text" value="${location.file}" placeholder="Путь к файлу"></td>
+                                        <td>
+                                         <div class="location-line-container">
+                                        <input type="number" value="${location.line}" placeholder="Номер строки" min="1">
+                                        <button class="delete-location" onclick="deleteCodeLocationRow(this)">×</button>
+                                        </div>
+                                        </td>
+
+                                    </tr>
+                                `).join('')}
+                                
+                            </tbody>
+                        </table>
+                        <button type="button" class="add-row-button" onclick="addCodeLocationRow()">
+                            <i class="plus-icon">+</i> Добавить использование
+                        </button>
+                    </div>
+                </div>
+            `;
+
             htmlContent += `
                 <div class="modal-buttons">
                     <button class="modal-button save-button" onclick="saveChanges('${type}')">Добавить</button>
@@ -1585,7 +1738,6 @@ data.structures = data.structures.filter(item => !item.is_deleted);
             const content = modal.querySelector('.view-info');
             const title = modal.querySelector('.view-title');
             
-            title.textContent = itemData.name;
             title.textContent = itemData.name;
             title.style.cursor = 'pointer';
             title.onclick = () => copyToClipboard(itemData.name);
@@ -1610,23 +1762,29 @@ data.structures = data.structures.filter(item => !item.is_deleted);
                 htmlContent += `
                     <div class="view-section">
                         <h3>Поля структуры</h3>
-                        <div class="structure-fields" id="structureFields">
-                            <div class="field-row header">
-                                <span>Имя</span>
-                                <span>Тип</span>
-                                <span>Описание</span>
-                                <span></span>
-                            </div>
-                            ${(itemData.fields || []).map(field => `
-                                <div class="field-row">
-                                    <input type="text" value="${field.name || ''}" placeholder="Имя">
-                                    <input type="text" value="${field.type || ''}" placeholder="Тип">
-                                    <input type="text" value="${field.description || ''}" placeholder="Описание">
-                                    <button class="delete-btn" onclick="this.parentElement.remove()">×</button>
-                                </div>
-                            `).join('')}
+                        <div class="params-fields">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Имя</th>
+                                        <th>Тип</th>
+                                        <th>Описание</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="structFieldsBody">
+                                    ${(itemData.fields || []).map(field => `
+                                        <tr>
+                                            <td><input type="text" value="${field.name || ''}" placeholder="Имя"></td>
+                                            <td><input type="text" value="${field.type || ''}" placeholder="Тип"></td>
+                                            <td><input type="text" value="${field.description || ''}" placeholder="Описание"></td>
+                                            <td><button class="delete-location" onclick="deleteParamRow(this)">×</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                            <button class="add-field-btn" onclick="addParamRow('structFieldsBody')">+ Добавить поле</button>
                         </div>
-                        <button class="add-field-btn" onclick="addFieldRow()">+ Добавить поле</button>
                     </div>
                 `;
             } else if (type === 'functions') {
@@ -1651,42 +1809,54 @@ data.structures = data.structures.filter(item => !item.is_deleted);
                     <div class="view-section">
                         <h3>Входные параметры</h3>
                         <div class="params-fields" id="inputParamsFields">
-                            <div class="field-row header">
-                                <span>Имя</span>
-                                <span>Тип</span>
-                                <span>Описание</span>
-                                <span></span>
-                            </div>
-                            ${(itemData.input_params || []).map(param => `
-                                <div class="field-row">
-                                    <input type="text" value="${param.name || ''}" placeholder="Имя">
-                                    <input type="text" value="${param.type || ''}" placeholder="Тип">
-                                    <input type="text" value="${param.description || ''}" placeholder="Описание">
-                                    <button class="delete-btn" onclick="this.parentElement.remove()">×</button>
-                                </div>
-                            `).join('')}
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Имя</th>
+                                        <th>Тип</th>
+                                        <th>Описание</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inputParamsBody">
+                                    ${(itemData.input_params || []).map(param => `
+                                        <tr>
+                                            <td><input type="text" value="${param.name || ''}" placeholder="Имя"></td>
+                                            <td><input type="text" value="${param.type || ''}" placeholder="Тип"></td>
+                                            <td><input type="text" value="${param.description || ''}" placeholder="Описание"></td>
+                                            <td><button class="delete-location" onclick="deleteParamRow(this)">×</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                            <button class="add-field-btn" onclick="addParamRow('inputParamsBody')">+ Добавить параметр</button>
                         </div>
-                        <button class="add-field-btn" onclick="addParamRow('inputParamsFields')">+ Добавить параметр</button>
                     </div>
                     <div class="view-section">
                         <h3>Выходные параметры</h3>
                         <div class="params-fields" id="outputParamsFields">
-                            <div class="field-row header">
-                                <span>Имя</span>
-                                <span>Тип</span>
-                                <span>Описание</span>
-                                <span></span>
-                            </div>
-                            ${(itemData.output_params || []).map(param => `
-                                <div class="field-row">
-                                    <input type="text" value="${param.name || ''}" placeholder="Имя">
-                                    <input type="text" value="${param.type || ''}" placeholder="Тип">
-                                    <input type="text" value="${param.description || ''}" placeholder="Описание">
-                                    <button class="delete-btn" onclick="this.parentElement.remove()">×</button>
-                                </div>
-                            `).join('')}
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Имя</th>
+                                        <th>Тип</th>
+                                        <th>Описание</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="outputParamsBody">
+                                    ${(itemData.output_params || []).map(param => `
+                                        <tr>
+                                            <td><input type="text" value="${param.name || ''}" placeholder="Имя"></td>
+                                            <td><input type="text" value="${param.type || ''}" placeholder="Тип"></td>
+                                            <td><input type="text" value="${param.description || ''}" placeholder="Описание"></td>
+                                            <td><button class="delete-location" onclick="deleteParamRow(this)">×</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                            <button class="add-field-btn" onclick="addParamRow('outputParamsBody')">+ Добавить параметр</button>
                         </div>
-                        <button class="add-field-btn" onclick="addParamRow('outputParamsFields')">+ Добавить параметр</button>
                     </div>
                 `;
             } else if (type === 'constants' || type === 'variables') {
@@ -1727,6 +1897,41 @@ data.structures = data.structures.filter(item => !item.is_deleted);
                     </div>
                 `;
             }
+
+            // Добавляем секцию для указания расположения в коде
+            htmlContent += `
+                <div class="view-section code-location-section">
+                    <h3>Использования в коде</h3>
+                    <div class="table-container">
+                        <table class="code-locations-table">
+                            <thead>
+                                <tr>
+                                    <th>Файл</th>
+                                    <th>Строка</th>
+                                </tr>
+                            </thead>
+                            <tbody id="codeLocationsBody">
+                                ${(itemData.links_in_code || []).map(location => `
+                                    <tr>
+                                        <td><input type="text" value="${location.file_path}" placeholder="Путь к файлу"></td>
+                                        <td>
+                                         <div class="location-line-container">
+                                        <input type="number" value="${location.line_number}" placeholder="Номер строки" min="1">
+                                        <button class="delete-location" onclick="deleteCodeLocationRow(this)">×</button>
+                                        </div>
+                                        </td>
+
+                                    </tr>
+                                `).join('')}
+                                
+                            </tbody>
+                        </table>
+                        <button type="button" class="add-row-button" onclick="addCodeLocationRow()">
+                            <i class="plus-icon">+</i> Добавить использование
+                        </button>
+                    </div>
+                </div>
+            `;
 
             htmlContent += `
                 <div class="modal-buttons">
@@ -1754,7 +1959,7 @@ data.structures = data.structures.filter(item => !item.is_deleted);
             
 
             if (type === 'structures') {
-                updatedData.fields = Array.from(document.querySelectorAll('#structureFields .field-row:not(.header)')).map(row => {
+                updatedData.fields = Array.from(document.querySelectorAll('#structFieldsBody tbody tr')).map(row => {
                     const [name, type, description] = row.querySelectorAll('input');
                     return {
                         name: name.value,
@@ -1765,7 +1970,7 @@ data.structures = data.structures.filter(item => !item.is_deleted);
             } else if (type === 'functions') {
                 updatedData.scope = document.getElementById('editScope').value;
                 updatedData.is_static = document.getElementById('editStatic').value === 'true';
-                updatedData.input_params = Array.from(document.querySelectorAll('#inputParamsFields .field-row:not(.header)')).map(row => {
+                updatedData.input_params = Array.from(document.querySelectorAll('#inputParamsBody tr')).map(row => {
                     const [name, type, description] = row.querySelectorAll('input');
                     return {
                         name: name.value,
@@ -1773,7 +1978,7 @@ data.structures = data.structures.filter(item => !item.is_deleted);
                         description: description.value
                     };
                 });
-                updatedData.output_params = Array.from(document.querySelectorAll('#outputParamsFields .field-row:not(.header)')).map(row => {
+                updatedData.output_params = Array.from(document.querySelectorAll('#outputParamsBody tr')).map(row => {
                     const [name, type, description] = row.querySelectorAll('input');
                     return {
                         name: name.value,
@@ -1794,10 +1999,20 @@ data.structures = data.structures.filter(item => !item.is_deleted);
                     updatedData.is_static = document.getElementById('editStatic').value === 'true';
                 }
             }
+
+            // Добавляем расположения в коде
+            updatedData.links_in_code = Array.from(document.querySelectorAll('#codeLocationsBody tr')).map(row => {
+                const [file, line] = row.querySelectorAll('input');
+                return {
+                    file: file.value,
+                    line: parseInt(line.value)
+                };
+            });
+
             // Отправляем запрос на обновление
-            if (itemId == 'new') {
+            
                 copyToClipboard(name);
-            }
+            
             fetch('/api/update', {
                 method: 'POST',
                 headers: {
@@ -1824,29 +2039,96 @@ data.structures = data.structures.filter(item => !item.is_deleted);
         }
 
         function addFieldRow() {
-            const fieldsContainer = document.getElementById('structureFields');
-            const row = document.createElement('div');
-            row.className = 'field-row';
+            const tbody = document.querySelector('#structFieldsBody');
+            if (!tbody) {
+                console.error('Элемент structFieldsBody не найден');
+                return;
+            }
+            const row = document.createElement('tr');
             row.innerHTML = `
-                <input type="text" placeholder="Имя">
-                <input type="text" placeholder="Тип">
-                <input type="text" placeholder="Описание">
-                <button class="delete-btn" onclick="this.parentElement.remove()">×</button>
+                <td><input type="text" placeholder="Имя"></td>
+                <td><input type="text" placeholder="Тип"></td>
+                <td><input type="text" placeholder="Описание"></td>
+                <td><button class="delete-location" onclick="deleteParamRow(this)">×</button></td>
             `;
-            fieldsContainer.appendChild(row);
+            tbody.appendChild(row);
         }
 
         function addParamRow(containerId) {
-            const container = document.getElementById(containerId);
-            const newRow = document.createElement('div');
-            newRow.className = 'field-row';
-            newRow.innerHTML = `
-                <input type="text" placeholder="Имя">
-                <input type="text" placeholder="Тип">
-                <input type="text" placeholder="Описание">
-                <button class="delete-btn" onclick="this.parentElement.remove()">×</button>
+            const tbody = document.querySelector(`#${containerId}`);
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" placeholder="Имя"></td>
+                <td><input type="text" placeholder="Тип"></td>
+                <td><input type="text" placeholder="Описание"></td>
+                <td><button class="delete-location" onclick="deleteParamRow(this)">×</button></td>
             `;
-            container.appendChild(newRow);
+            tbody.appendChild(row);
+        }
+
+        function deleteParamRow(button) {
+            const row = button.closest('tr');
+            row.remove();
+        }
+
+        function addCodeLocationRow() {
+            const tbody = document.querySelector('#codeLocationsBody');
+            const uniqueId = 'fileInput_' + Date.now();
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <div class="file-input-container">
+                        <input type="file" id="${uniqueId}" style="display: none;" onchange="updateFilePath(this)" />
+                        <input type="text" class="file-path-input" placeholder="Путь к файлу" onclick="document.getElementById('${uniqueId}').click()" />
+                    </div>
+                </td>
+                <td>
+                    <div class="location-line-container">
+                        <input type="number" placeholder="Номер строки" min="1">
+                        <button class="delete-location" onclick="deleteCodeLocationRow(this)" title="Удалить строку">×</button>
+                    </div>
+                </td>
+            `;
+
+
+            tbody.appendChild(row);
+            
+            // Автоматически открываем диалог выбора файла
+            document.getElementById(uniqueId).click();
+        }
+
+        async function updateFilePath(fileInput) {
+            const container = fileInput.parentElement;
+            const textInput = container.querySelector('.file-path-input');
+            
+            if (fileInput.files.length > 0) {
+                try {
+                    // Получаем содержимое буфера обмена
+                    const clipboardText = await navigator.clipboard.readText();
+                    // Получаем имя выбранного файла
+                    const fileName = fileInput.files[0].name;
+                    // Формируем полный путь
+                    const fullPath = clipboardText + '\\' + fileName;
+                    
+                    // Создаем новый input для замены
+                    const newInput = document.createElement('input');
+                    newInput.type = 'text';
+                    newInput.className = 'file-path-input';
+                    newInput.value = fullPath;
+                    
+                    // Заменяем старый input на новый
+                    container.replaceChild(newInput, textInput);
+                    
+                    // Удаляем скрытый file input, так как он больше не нужен
+                    fileInput.remove();
+                } catch (error) {
+                    console.error('Error accessing clipboard:', error);
+                }
+            }
+        }
+
+        function deleteCodeLocationRow(button) {
+            button.closest('tr').remove();
         }
 
         function editItem(button) {
@@ -1888,6 +2170,218 @@ try {
     console.error('Error deleting item:', error);
     alert('Ошибка при удалении элемента', 'error');
 }
+        }
+
+        function viewItem(itemData, type) {
+            const modal = document.getElementById('viewModal');
+            const title = modal.querySelector('.view-title');
+            const content = modal.querySelector('.view-info');
+            title.textContent = itemData.name;
+            title.style.cursor = 'pointer';
+            title.onclick = () => copyToClipboard(itemData.name);
+            
+            let htmlContent = '';
+            
+            // Общая информация для всех типов
+            htmlContent += `
+                <div class="view-section">
+                    <div class="view-row">
+                        <span class="view-label">Описание:</span>
+                        <span class="view-value">${itemData.description || 'Описание отсутствует'}</span>
+                    </div>
+                </div>
+            `;
+
+            // Добавляем информацию об использовании в коде
+            if (itemData.links_in_code && itemData.links_in_code.length > 0) {
+                htmlContent += `
+                    <div class="view-section">
+                        <h3>Использований в коде: ${itemData.links_in_code.length}</h3>
+                        <div class="code-links">
+                            ${itemData.links_in_code.map(link => {
+                                
+                                return `
+                                    <div class="code-link-item">
+                                        <a href="#" class="file-link" 
+                                           onclick="openInEditor('${link.file_path.split('\\').join('?')}', ${link.line_number || 1}, this); return false;">
+                                            ${link.file_path}:${link.line_number || 1}
+                                        </a>
+                                        ${link.context ? `<span class="code-context">${link.context}</span>` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Специфичная информация для каждого типа
+            switch(type) {
+                case 'functions':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Статическая:</span>
+                                <span class="view-value">${itemData.is_static ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Входные параметры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${(itemData.input_params || []).map(param => `
+                                    <div class="view-table-row">
+                                        <span>${param.name || 'Нет имени'}</span>
+                                        <span>${param.type}</span>
+                                        <span>${param.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Выходные параметры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${(itemData.output_params || []).map(param => `
+                                    <div class="view-table-row">
+                                        <span>${param.name || 'Нет имени'}</span>
+                                        <span>${param.type}</span>
+                                        <span>${param.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'constants':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Значение:</span>
+                                <span class="view-value">${itemData.value !== undefined ? itemData.value : ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Тип:</span>
+                                <span class="view-value">${itemData.type || ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">#define:</span>
+                                <span class="view-value">${itemData.is_define ? 'Да' : 'Нет'}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Статическая: </span>
+                                <span class="view-value">${itemData.is_is_static ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'variables':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Тип:</span>
+                                <span class="view-value">${itemData.type || ''}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Область видимости:</span>
+                                <span class="view-value">${formatScope(itemData.scope)}</span>
+                            </div>
+                            
+                            <div class="view-row">
+                                <span class="view-label">Статическая:</span>
+                                <span class="view-value">${itemData.is_static ? 'Да' : 'Нет'}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'structures':
+                    htmlContent += `
+                        <div class="view-section">
+                            <h3>Поля структуры</h3>
+                            <div class="view-table">
+                                <div class="view-table-header">
+                                    <span>Имя</span>
+                                    <span>Тип</span>
+                                    <span>Описание</span>
+                                </div>
+                                ${(itemData.fields || []).map(field => `
+                                    <div class="view-table-row">
+                                        <span>${field.name}</span>
+                                        <span>${field.type}</span>
+                                        <span>${field.description || 'Нет описания'}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="view-section">
+                            <h3>Технические детали</h3>
+                            <div class="view-row">
+                                <span class="view-label">Размер:</span>
+                                <span class="view-value">${itemData.size} байт</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Выравнивание:</span>
+                                <span class="view-value">${itemData.alignment} байт</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Packed:</span>
+                                <span class="view-value">${itemData.packed ? 'Да' : 'Нет'}</span>
+                            </div>
+                            <div class="view-row">
+                                <span class="view-label">Наследование:</span>
+                                <span class="view-value">${itemData.inheritance || ''}</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            // Добавляем предупреждения, если есть
+            if (itemData.warnings) {
+                htmlContent += `
+                    <div class="view-section warning-section">
+                        <h3>Предупреждения</h3>
+                        <p>${itemData.warnings}</p>
+                    </div>
+                `;
+            }
+
+            // Добавляем теги, если есть
+            if (itemData.tags && itemData.tags.length > 0) {
+                htmlContent += `
+                    <div class="view-section">
+                        <h3>Теги</h3>
+                        <div class="view-tags">
+                            ${createTags(itemData.tags)}
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = htmlContent;
+            modal.style.display = 'block';
         }
 
         window.addEventListener('load', () => {
@@ -1970,8 +2464,9 @@ try {
             
             // Создаем URI для Windsurf
             const windsurfUri = `windsurf://file/${encodeURIComponent(filePath)}:1`;
+            
             console.log('Открываем файл:', filePath);
-            console.log('Windsurf URI:', windsurfUri);
+            console.log('URI:', windsurfUri);
             
             // Открываем ссылку
             window.location.href = windsurfUri;
