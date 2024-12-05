@@ -3729,7 +3729,7 @@
             "deprecated": false,
             "tags": [],
             "documentation_link": "",
-            "is_deleted": false,
+            "is_deleted": true,
             "input_params": [],
             "output_params": [
                 {
@@ -3753,7 +3753,7 @@
             "deprecated": false,
             "tags": [],
             "documentation_link": "",
-            "is_deleted": false,
+            "is_deleted": true,
             "input_params": [],
             "output_params": [
                 {
@@ -3777,7 +3777,7 @@
             "deprecated": false,
             "tags": [],
             "documentation_link": "",
-            "is_deleted": false,
+            "is_deleted": true,
             "input_params": [],
             "output_params": [
                 {
@@ -3801,7 +3801,7 @@
             "deprecated": false,
             "tags": [],
             "documentation_link": "",
-            "is_deleted": false,
+            "is_deleted": true,
             "input_params": [],
             "output_params": [
                 {
@@ -3825,7 +3825,7 @@
             "deprecated": false,
             "tags": [],
             "documentation_link": "",
-            "is_deleted": false,
+            "is_deleted": true,
             "input_params": [
                 {
                     "name": "1.0",
@@ -3854,7 +3854,7 @@
             "deprecated": false,
             "tags": [],
             "documentation_link": "",
-            "is_deleted": false,
+            "is_deleted": true,
             "input_params": [
                 {
                     "name": "1.0",
@@ -3883,7 +3883,7 @@
             "deprecated": false,
             "tags": [],
             "documentation_link": "",
-            "is_deleted": false,
+            "is_deleted": true,
             "input_params": [
                 {
                     "name": "1.0",
@@ -3912,7 +3912,7 @@
             "deprecated": false,
             "tags": [],
             "documentation_link": "",
-            "is_deleted": false,
+            "is_deleted": true,
             "input_params": [],
             "output_params": [
                 {

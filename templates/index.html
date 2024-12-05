@@ -2,21 +2,112 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Анализатор кода</title>
+    <title>Документация по коду</title>
     <link rel="icon" media="(prefers-color-scheme: light)" href="{{ url_for('static', filename='favicon-light.ico') }}">
     <link rel="icon" media="(prefers-color-scheme: dark)" href="{{ url_for('static', filename='favicon-dark.ico') }}">
     <style>
+        .about {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;  /* Расстояние между элементами */
+    position: fixed;
+    top: 20px;
+    left: 20px;
+}
+
+.about a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 0.8em;
+    transition: color 0.3s ease;
+}
+
+.about a:hover {
+    color: var(--accent-color);
+}
+       .theme-switch {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: none;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    /* Убираем рамку и фон полностью */
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.switch {
+    cursor: pointer;
+    width: 46px;
+    height: 24px;
+    background-color: var(--accent-color);
+    display: block;
+    border-radius: 24px;
+    position: relative;
+    transition: 0.3s all ease;
+    border: none;
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.switch::before {
+    content: "🌙";
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    position: absolute;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    transition: 0.3s all ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.theme-switch input:checked + .switch::before {
+    transform: translateX(22px);
+    content: "☀️";
+}
+
+
+
+       
         :root {
             --bg-primary: #1a1b1e;
             --bg-secondary: #2d2e32;
             --text-primary: #e4e6eb;
             --text-secondary: #b0b3b8;
-            --accent-color: #4f46e5;
-            --border-color: #3a3b3f;
-            --warning-color: #ef4444;
-            --tag-bg: #374151;
-            --deprecated-bg: #3f2a2a;
+            --accent-color: #4a90e2;
+            --border-color: #3a3b3c;
             --hover-color: #3a3b3f;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #ffffff;
+                --bg-secondary: #f0f0f0;
+                --text-primary: #000000;
+                --text-secondary: #333333;
+                --accent-color: #007bff;
+                --border-color: #cccccc;
+                --hover-color: #e0e0e0;
+            }
         }
 
         body {
@@ -35,6 +126,7 @@
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
         }
 
         .section {
@@ -983,16 +1075,53 @@
             gap: 8px;
         }
 
+        .theme-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            padding: 8px 16px;
+            color: white;
+            border-radius: 5px;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .theme-switch:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <a href="#" class="version-link" data-filepath="{{ current_file }}" onclick="openVersionFile(this)" style="margin-left: 10px; font-size: 0.8em; color: var(--text-secondary);">{{ version_info }}</a>
 
-        <h1>Анализатор кода</h1>
+    
+    <div class="about">
+        <a href="#" class="version-link" data-filepath="{{ current_file }}" onclick="openVersionFile(this)">
+            {{ version_info }}
+        </a>
+        <a href="https://t.me/nicknemov" target="_blank">
+            <span style="display: inline-flex; align-items: center;">
+                <svg style="width: 16px; height: 16px; margin-right: 5px;" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.94 8.13l-1.69 7.95c-.13.59-.48.74-.98.46l-2.7-1.99-1.3 1.25c-.14.14-.27.27-.55.27l.2-2.78 5.06-4.57c.22-.2-.05-.31-.34-.12l-6.26 3.94-2.7-.84c-.58-.18-.59-.58.12-.86l10.53-4.06c.48-.18.91.11.61 1.35z"/>
+                </svg>
+                Обратная связь
+            </span>
+        </a>
+    </div>
 
+        <h1>Документация по коду</h1>
         
+
+        <div class="container">
+            <div class="theme-switch">
+                <input type="checkbox" id="theme-toggle" onchange="toggleTheme(this)">
+                <label for="theme-toggle" class="switch"></label>
+            </div>
+
         <div class="tabs">
             <button class="tab-button active" data-tab="functions">
                 <span class="tab-icon">⚡</span>
@@ -1716,7 +1845,7 @@ if (selectedTab) {
             // Добавляем секцию для указания расположения в коде
             htmlContent += `
                 <div class="view-section code-location-section">
-                    <h3>Использования в коде</h3>
+                    <h3>Использование в коде</h3>
                     <div class="table-container">
                         <table class="code-locations-table">
                             <thead>
@@ -1928,7 +2057,7 @@ if (selectedTab) {
             // Добавляем секцию для указания расположения в коде
             htmlContent += `
                 <div class="view-section code-location-section">
-                    <h3>Использования в коде</h3>
+                    <h3>Использование в коде</h3>
                     <div class="table-container">
                         <table class="code-locations-table">
                             <thead>
@@ -2498,8 +2627,72 @@ if (selectedTab) {
             window.location.href = windsurfUri;
             return false; // Предотвращаем действие по умолчанию
         }
+
         
         
     </script>
+        <script>
+            function toggleTheme(checkbox) {
+                const html = document.documentElement;
+                const isDark = !checkbox.checked;
+                const newTheme = isDark ? 'dark' : 'light';
+                
+                html.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            
+                // Обновляем favicon
+ 
+            
+                if (newTheme === 'light') {
+                    document.documentElement.style.setProperty('--bg-primary', '#ffffff');
+                    document.documentElement.style.setProperty('--bg-secondary', '#f0f0f0');
+                    document.documentElement.style.setProperty('--text-primary', '#000000');
+                    document.documentElement.style.setProperty('--text-secondary', '#333333');
+                    document.documentElement.style.setProperty('--accent-color', '#007bff');
+                    document.documentElement.style.setProperty('--border-color', '#cccccc');
+                    document.documentElement.style.setProperty('--hover-color', '#e0e0e0');
+                } else {
+                    document.documentElement.style.setProperty('--bg-primary', '#1a1b1e');
+                    document.documentElement.style.setProperty('--bg-secondary', '#2d2e32');
+                    document.documentElement.style.setProperty('--text-primary', '#e4e6eb');
+                    document.documentElement.style.setProperty('--text-secondary', '#b0b3b8');
+                    document.documentElement.style.setProperty('--accent-color', '#4a90e2');
+                    document.documentElement.style.setProperty('--border-color', '#3a3b3c');
+                    document.documentElement.style.setProperty('--hover-color', '#3a3b3f');
+                }
+            }
+            
+            window.addEventListener('load', () => {
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+                
+                document.documentElement.setAttribute('data-theme', initialTheme);
+                document.querySelector('.theme-switch input').checked = initialTheme === 'light';
+            
+                // Обновляем favicon при загрузке
+               
+            
+                if (initialTheme === 'light') {
+                    document.documentElement.style.setProperty('--bg-primary', '#ffffff');
+                    document.documentElement.style.setProperty('--bg-secondary', '#f0f0f0');
+                    document.documentElement.style.setProperty('--text-primary', '#000000');
+                    document.documentElement.style.setProperty('--text-secondary', '#333333');
+                    document.documentElement.style.setProperty('--accent-color', '#007bff');
+                    document.documentElement.style.setProperty('--border-color', '#cccccc');
+                    document.documentElement.style.setProperty('--hover-color', '#e0e0e0');
+                } else {
+                    document.documentElement.style.setProperty('--bg-primary', '#1a1b1e');
+                    document.documentElement.style.setProperty('--bg-secondary', '#2d2e32');
+                    document.documentElement.style.setProperty('--text-primary', '#e4e6eb');
+                    document.documentElement.style.setProperty('--text-secondary', '#b0b3b8');
+                    document.documentElement.style.setProperty('--accent-color', '#4a90e2');
+                    document.documentElement.style.setProperty('--border-color', '#3a3b3c');
+                    document.documentElement.style.setProperty('--hover-color', '#3a3b3f');
+                }
+            });
+            </script>
+
+
 </body>
 </html>
