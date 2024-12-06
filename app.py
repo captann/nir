@@ -7,8 +7,20 @@ from datetime import datetime
 from pathlib import Path
 import argparse
 import urllib.parse
+from werkzeug.middleware.proxy_fix import ProxyFix
 
+from flask_cors import CORS
 app = Flask(__name__)
+
+app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_for=1,      # Количество прокси для X-Forwarded-For
+    x_proto=1,    # Количество прокси для X-Forwarded-Proto
+    x_host=1,     # Количество прокси для X-Forwarded-Host
+    x_prefix=1    # Количество прокси для X-Forwarded-Prefix
+)
+
+CORS(app)
 BACKUP_DIR = 'backups'
 VERSIONS_DIR = 'versions'
 VERSION = None  # Глобальная переменная для хранения запрошенной версии
@@ -93,8 +105,14 @@ def load_json_data():
     """Загрузка данных из JSON файла"""
     try:
         json_file = get_json_file()
+        if not os.path.exists(json_file):
+            raise FileNotFoundError(f"Файл не найден: {json_file}")
+            
         with open(json_file, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            data = json.load(f)
+            if not isinstance(data, dict):
+                raise ValueError("Некорректный формат JSON")
+            return data
     except Exception as e:
         print(f"Ошибка при загрузке данных: {e}")
         return {
@@ -159,8 +177,19 @@ def index():
 
 @app.route('/api/data')
 def get_data():
-    data = load_json_data()
-    return jsonify(data)
+    try:
+        data = load_json_data()
+        response = jsonify(data)
+        response.headers.add('Access-Control-Allow-Origin', '*')  # Разрешаем CORS
+        return response
+    except Exception as e:
+        error_response = jsonify({
+            'error': str(e),
+            'message': 'Ошибка при загрузке данных'
+        })
+        error_response.headers.add('Access-Control-Allow-Origin', '*')
+        error_response.status_code = 500
+        return error_response
 
 @app.route('/api/update', methods=['POST'])
 def update_item():
@@ -396,4 +425,4 @@ if __name__ == '__main__':
         except FileNotFoundError:
             print(f"Версия {VERSION} не найдена, будет использована последняя версия")
             VERSION = None 
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000, host='0.0.0.0',threaded=True )
